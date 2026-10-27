@@ -1,0 +1,10 @@
+# O .env carrega senhas de banco e a chave que criptografa os certificados A1.
+# Só o .env.example é versionado.
+.env
+
+# Dumps gerados pelo make import-legacy
+*.sql
+
+# Cópias de segurança locais (o .env.bak-* tem os mesmos segredos do .env)
+.env.bak-*
+Makefile.bak-*
