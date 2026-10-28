@@ -14,6 +14,18 @@ Branch `feat/grade-variacoes` nos quatro repositórios (`gestaofacil-api`, `-fe`
 - **Ficou de fora:** XML real de compra de confecção (não há; a Fase 6 usa fixture sintética rotulada) e o teto
   absoluto definitivo (os tetos de 100 ms/300 ms do plano passaram com folga).
 
+## PLAN-GRADE — Fase 5: busca do caixa, pedido e nota avulsa (28/10/2026)
+
+- **Fechou:** `GET /produtos?agrupar=1` (`Grade\BuscaAgrupada`): variações agrupadas no modelo (eixos, variações ativas, saldo e combinação de cada uma), produto simples como sempre,
+  **código de barras ou SKU exato vai direto na variação** (o leitor não passa pela matriz), tudo da empresa logada e na mesma área `produtos`. No front, `ProdutoBusca` (PDV, pedido, nota avulsa e vínculo
+  da nota de entrada) mostra o modelo e abre `GradeSeletor` (matriz cor × tamanho com saldo; variação sem estoque esmaecida mas vendável; lista com 1 ou 3 eixos).
+- **Testes:** 14 novos (`BuscaAgrupadaTest`); suíte 1.086 passam, as mesmas 5 falhas. `tsc` e build do front limpos.
+- **Desempenho (6.000 variações por empresa):** leitor (EAN exato) agrupado **2,4 ms, 1 query** (a busca plana por EAN levava ~30 ms); busca agrupada por texto 93 ms p95, 8 queries, resposta de 247 KB para 10
+  modelos × 30 variações (teto do plano: 150 ms). A busca plana segue em ~35 ms. Ou seja, digitar "Modelo" no caixa custa ~2,5× a busca plana; leitura de código é mais rápida que antes.
+  Se isso incomodar: carregar as variações só ao abrir a matriz (resposta leve) ou o índice trigram (G20).
+- **Não conferido:** o fluxo no navegador (a suíte E2E do PDV roda na Fase 8) e a conferência visual no Firefox, sua.
+- **Fato anterior à grade, não alterado:** o perfil `vendedor` não tem a área `produtos`, e a busca do caixa fica nela; o vendedor leva 403 ao buscar produto.
+
 ## PLAN-GRADE — Fase 4: telas de cadastro, lista e estoque (28/10/2026)
 
 - **Fechou (gestaofacil-fe):** `ModeloForm` (`/modelos/novo`, `/modelos/:id`): criação com atributos abertos (autocompletar do catálogo, eixo ou informativo, grades prontas, pré-visualização com contador
