@@ -14,6 +14,17 @@ Branch `feat/grade-variacoes` nos quatro repositórios (`gestaofacil-api`, `-fe`
 - **Ficou de fora:** XML real de compra de confecção (não há; a Fase 6 usa fixture sintética rotulada) e o teto
   absoluto definitivo (os tetos de 100 ms/300 ms do plano passaram com folga).
 
+## PLAN-GRADE — Fase 4: telas de cadastro, lista e estoque (28/10/2026)
+
+- **Fechou (gestaofacil-fe):** `ModeloForm` (`/modelos/novo`, `/modelos/:id`): criação com atributos abertos (autocompletar do catálogo, eixo ou informativo, grades prontas, pré-visualização com contador
+  e limites), edição com "aplicar às variações" (confirmação e contagem), lista de variações, **entrada de estoque em matriz**, adicionar variações (valor novo, combinação avulsa, eixo novo),
+  editar variação (preço, SKU, EAN, trocar valor; nome travado), excluir variação (409 com história → inativar) e tirar valor do modelo. Aba "Com variações" em `Produtos` (linha expansível);
+  `ProdutoForm` com seletor simples/variações, nome de variação travado e `aviso_codigo_barras`; nota avulsa pré-preenche `descricao_fiscal`; `AtualizarDadosFiscais` na venda e na nota avulsa.
+- **Conferido:** `tsc --noEmit` e `vite build` limpos; `npm run verificar:grade` (regra pura: combinações, limites, normalização, grades prontas).
+- **Não conferido:** a tela no navegador. Não há teste de componente no front (decisão de 22/09) e a conferência visual em 360/390/768/1280 px é sua, no Firefox. O caminho feliz é exercitado
+  de ponta a ponta na suíte E2E (Fase 8).
+- **Ficou de fora:** busca do PDV/pedido/nota avulsa agrupada em matriz (Fase 5).
+
 ## PLAN-GRADE — Fase 3: estoque em matriz (28/10/2026)
 
 - **Fechou (gestaofacil-api):** `EstoqueService::lancarManualEmLote` (entrada/ajuste de várias variações, sem nota de entrada; `movimentarEmLote` aceita `nota_entrada_id` nulo sem mudar o contrato
