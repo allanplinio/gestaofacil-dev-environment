@@ -14,6 +14,23 @@ Branch `feat/grade-variacoes` nos quatro repositórios (`gestaofacil-api`, `-fe`
 - **Ficou de fora:** XML real de compra de confecção (não há; a Fase 6 usa fixture sintética rotulada) e o teto
   absoluto definitivo (os tetos de 100 ms/300 ms do plano passaram com folga).
 
+## PLAN-GRADE — Fase 1: atributos, modelo e variações na API (28/10/2026)
+
+- **Fechou (gestaofacil-api):** 6 tabelas novas + 3 colunas em `produtos`; `CatalogoDeAtributos` (normalização, achar-ou-criar, autocompletar),
+  `ModeloService` (criar em matriz idempotente, adicionar valor/eixo/combinação, editar com "aplicar às variações", trocar valores, remover variação,
+  remover valor/eixo, inativar/reativar, SKU gerado ≤60 sem colisão), `ManutencaoDoCatalogo` (renomear, mesclar, apagar sem uso) e 13+6 rotas
+  (`/produto-modelos/*`, `/atributos/*`, `/atributo-valores/*`). `PATCH /produtos/{variação}` recusa `nome`. Variação sem história exclui; com história
+  responde 409 e a saída é inativar.
+- **Testes:** 68 novos (`tests/Feature/Grade`); suíte do gestaofacil-api 1.016 passam, as mesmas 5 falhas de antes. Migration com `down()` conferido.
+- **Desempenho (antes × depois, 5.000 simples + 6.000 variações por empresa, 2 empresas):** busca por nome p95 35,9 → 32,8 ms; por SKU 42,9 → 44,4 ms;
+  **por EAN 20,9 → 46,4 ms (+122%, p50 15,8 → 34,6)**; todas com 2 queries e bem abaixo do teto de 100 ms. A busca por EAN piorou porque o `OR` com `ILIKE '%x%'`
+  varre as linhas da empresa e agora são o dobro. Detalhe e proposta na pergunta aberta abaixo. Novos: autocompletar p95 4,7 ms; detalhe de modelo 10,8 ms (5 queries,
+  não cresce com as variações); lista agrupada 10,4 ms; criar modelo de 200 variações 1,5 s (879 queries, operação rara).
+- **Pergunta aberta (G20):** a busca de produtos (PDV inclusive) é linear no nº de linhas da empresa. Com 11 mil linhas ainda são ~45 ms, mas a grade multiplica linhas.
+  Opções: (a) atalho para código de barras (8–14 dígitos → `codigo_barras = ?` antes do `ILIKE`) com índice `(empresa_id, codigo_barras)`; (b) `pg_trgm`.
+  Mudar o comportamento da busca é decisão sua; não foi feito.
+- **Ficou de fora:** nada na emissão (Fase 2), estoque em matriz (Fase 3), telas (Fases 4–5).
+
 ## PLAN-GRADE — Fase 0b: snapshot fiscal no item (28/10/2026)
 
 - **Fechou (gestaofacil-api):** `venda_itens` congela NCM, CEST, unidade, origem, ST, `cProd`, GTIN e `xProd` (10 colunas, `snapshot_fiscal`);

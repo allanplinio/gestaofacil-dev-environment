@@ -177,7 +177,8 @@ atributo_valores                        (novo — CompanyScope)
 
 produto_modelos                         (novo — CompanyScope)
   id, empresa_id
-  nome            varchar(200)          -- nome-base: "Camiseta Básica"
+  nome            varchar(200)          -- nome-base: "Camiseta Básica" (a API aceita até 150: o nome composto
+                                        -- com 3 eixos de 25 caracteres tem de caber nos 255 de produtos.nome)
   referencia      varchar(60) null      -- código do modelo: "CAM001" (base do SKU)
   unidade         varchar(10)
   preco_venda     decimal(12,2)         -- padrão das variações

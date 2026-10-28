@@ -754,3 +754,20 @@ Schema::create('empresas', function (Blueprint $table) {
 - [ ] **Fronteira de dados:** nenhuma tabela da API de Vendas tem coluna de `.pfx`, senha
       de certificado, IE, IM, CRT, `cMun`, CNAE, CSC, série ou numeração de nota
       (`test_api_de_vendas_nao_tem_colunas_fiscais()` passa)
+
+---
+
+## Produtos com variações e atributos abertos (28/10/2026, PLAN-GRADE Fase 1)
+
+A variação **é** uma linha de `produtos`; estoque, venda, nota e importação continuam em `produto_id`.
+
+| Tabela | Colunas principais | Observação |
+|---|---|---|
+| `atributos` | `empresa_id`, `nome`, `nome_normalizado` | único `(empresa_id, nome_normalizado)`; nasce ao digitar |
+| `atributo_valores` | `empresa_id`, `atributo_id`, `valor`, `valor_normalizado` | único `(atributo_id, valor_normalizado)`; "Azul", "azul " e "ÁZUL" são o mesmo |
+| `produto_modelos` | `empresa_id`, `nome`, `referencia`, `unidade`, `preco_venda`, `padroes` (jsonb), `ativo` | único parcial `(empresa_id, referencia)`; não é vendável |
+| `modelo_atributos` | `modelo_id`, `atributo_id`, `usado_em_variacao`, `ordem` | eixo (máx. 3) ou informativo, por modelo |
+| `modelo_atributo_valores` | `modelo_id`, `atributo_id`, `valor_id`, `ordem` | os valores escolhidos no modelo |
+| `produto_atributo_valores` | `produto_id`, `atributo_id`, `valor_id` | a combinação de cada variação (um valor por eixo) |
+| `produtos` (colunas novas) | `modelo_id`, `chave_variacao`, `variacao_rotulo` | `chave_variacao` = `"atrId:valId|atrId:valId"`, único por modelo; `variacao_rotulo` = `"Azul - GG"`; ambos derivados, mantidos pelo `ModeloService` |
+

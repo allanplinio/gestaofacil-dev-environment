@@ -517,3 +517,12 @@ Commits: `nfe-api` 1d033e8, `gestaofacil-api` 110e647, `gestaofacil-fe` dbb5ed9.
 - [x] Migration sem backfill e com `down()` testado: item existente não é alterado (teste).
 - Risco aceito: item de venda criado antes da fase segue lendo o cadastro a cada emissão (decisão de não alterar dado antigo, G19).
 
+### 28/10/2026: produtos com variações (PLAN-GRADE, Fase 1)
+
+- [x] Isolamento: `Atributo`, `AtributoValor` e `ProdutoModelo` com `CompanyScope`; modelo, variação, atributo e valor de outra empresa dão 404 em todos os endpoints (testes `ModeloGradeTest` e `AtributosTest`); o autocompletar nunca devolve registro de outra empresa; catálogo separado por empresa (mesmo nome, registros diferentes).
+- [x] Área `produtos` em todas as rotas novas: vendedor recebe 403, sem login 401 (teste).
+- [x] Limites validados na API e no serviço: 3 eixos, 200 variações por chamada, valor de eixo 25 caracteres, 10 informativos, nome do modelo 150.
+- [x] `modelo_id`, `chave_variacao` e `variacao_rotulo` não vêm do navegador: `POST /produtos` com `modelo_id` cria produto simples (teste); `nome` de variação não é editável por `PATCH /produtos` (422).
+- [x] Sem SQL cru no código novo (o teste `EntradaESeguraTest` pegou um `whereRaw` e ele foi reescrito).
+- [x] Auditoria (`modelo.*`, `catalogo.*`) em criação, variações adicionadas, aplicação em lote, troca de valor, exclusão, inativação e manutenção do catálogo.
+
