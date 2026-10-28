@@ -526,3 +526,10 @@ Commits: `nfe-api` 1d033e8, `gestaofacil-api` 110e647, `gestaofacil-fe` dbb5ed9.
 - [x] Sem SQL cru no código novo (o teste `EntradaESeguraTest` pegou um `whereRaw` e ele foi reescrito).
 - [x] Auditoria (`modelo.*`, `catalogo.*`) em criação, variações adicionadas, aplicação em lote, troca de valor, exclusão, inativação e manutenção do catálogo.
 
+### 28/10/2026: produtos com variações — nota fiscal (PLAN-GRADE, Fase 2)
+
+- [x] `GTIN` só vai no `cEAN` se tiver 8/12/13/14 dígitos, dígito verificador correto e não for prefixo 2 (código interno): o resto sai "SEM GTIN" em vez de derrubar a nota (testes unitários e de emissão). O cadastro avisa (`aviso_codigo_barras`), não bloqueia.
+- [x] `cProd`: SKU de 60+ caracteres que coincidiria com o de outro produto depois do corte é recusado no cadastro e na edição (422); SKU gerado pela grade nunca passa de 60 (testes).
+- [x] `xProd`: variação mantém os valores dos eixos no corte de 120 (`Produto::descricaoFiscal`); produto simples corta como antes (testes).
+- Risco aceito: GTIN com prefixo 2 e dígito verificador errado agora saem "SEM GTIN"; antes saíam como GTIN e a SEFAZ decidia. A aceitação real pela SEFAZ não foi testada.
+

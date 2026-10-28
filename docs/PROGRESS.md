@@ -14,6 +14,17 @@ Branch `feat/grade-variacoes` nos quatro repositórios (`gestaofacil-api`, `-fe`
 - **Ficou de fora:** XML real de compra de confecção (não há; a Fase 6 usa fixture sintética rotulada) e o teto
   absoluto definitivo (os tetos de 100 ms/300 ms do plano passaram com folga).
 
+## PLAN-GRADE — Fase 2: nota fiscal (28/10/2026)
+
+- **Fechou (gestaofacil-api):** `Produto::descricaoFiscal()` (xProd com os valores dos eixos, usado na venda, no item congelado e exposto como `descricao_fiscal` para a nota avulsa);
+  `App\Support\Gtin` (tamanho, dígito verificador e prefixo 2) usado por `RegrasFiscais::gtin()` — decisão G16; `aviso_codigo_barras` no produto (avisa, não bloqueia);
+  SKU que coincide nos 60 primeiros caracteres com o de outro produto é recusado (E1). Nenhuma mudança no `nfe-api`: o payload tem a mesma forma.
+- **Testes:** 43 novos (`GtinTest`, `DescricaoFiscalTest`, `GradeNaNotaTest`); suíte 1.059 passam, as mesmas 5 falhas. O teste de contrato confere `codigo` ≤60, `descricao` ≤120 e `gtin` pelo
+  mesmo regex do `StoreNfeRequest` do `nfe-api` (não roda a suíte do `nfe-api`). **Ajuste em teste existente:** `DadosDoItemNaEmissaoTest` usava `7891234567890`, que tem dígito verificador errado
+  (o certo é `...895`); com a G16 esse código passa a sair "SEM GTIN", então a fixture foi corrigida para um GTIN válido. A `ProdutoFactory` passou a gerar EAN-13 válido e fora do prefixo 2.
+- **Desempenho:** sem mudança de queries (P5 54, P6 23). A tolerância relativa de tempo passou de +20% para 2× + 20 ms: o mesmo cenário oscilou de 33 a 56 ms entre execuções neste host.
+- **Ficou de fora:** emissão em homologação com duas variações (exige a sua autorização; envia dado à SEFAZ). Aceitação pela SEFAZ do `SEM GTIN` por prefixo 2/DV errado segue como premissa.
+
 ## PLAN-GRADE — Fase 1: atributos, modelo e variações na API (28/10/2026)
 
 - **Fechou (gestaofacil-api):** 6 tabelas novas + 3 colunas em `produtos`; `CatalogoDeAtributos` (normalização, achar-ou-criar, autocompletar),

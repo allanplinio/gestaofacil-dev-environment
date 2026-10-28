@@ -355,7 +355,7 @@ O contrato com o `nfe-api` (`StoreNfeRequest.php:94-102`) **não muda**: `codigo
   itens diferentes ficam com a mesma descrição. *Tratamento:* `Produto::descricaoFiscal()` usa
   `variacao_rotulo` (gravado, sem carregar relação, sem N+1): `texto(base, 120 − len(" - " +
   rotulo)) + " - " + rotulo`, em que a base é `nome` sem o sufixo. Como cada valor de eixo tem no
-  máximo 25 caracteres e há no máximo 3 eixos, o sufixo tem no máximo ~81 caracteres e sobram ≥39
+  máximo 25 caracteres e há no máximo 3 eixos, o sufixo (" - " mais o rótulo) tem no máximo 84 caracteres e sobram ≥36
   para a base. Produto simples (sem rótulo) continua cortando pelo fim, como hoje. O mesmo método
   é usado em `NfeEmissaoService.php:1058` e **exposto ao FE** para pré-preencher a descrição da
   **nota avulsa** (`FormularioNotaAvulsa.php:158` usa o texto digitado pelo usuário; lá o certo é
@@ -713,7 +713,7 @@ com gateway fake; dado de apoio por API; sem `waitForTimeout`; seletor por acess
 | G11 | Busca no caixa | matriz · lista plana | *Adotada:* **matriz** (2 eixos) / lista de combinações (3); lista plana é o fallback se a Fase 5 apertar |
 | G12 | Colunas derivadas `chave_variacao` e `variacao_rotulo` em `produtos` | com as colunas · sem elas | **Decidida em 28/10:** **com as colunas** (unicidade garantida no banco; `xProd` sem carregar relação na emissão) |
 | G13 | Teto de eixos | 2 · 3 · sem teto | *Adotada:* **3**, e 200 variações por chamada |
-| G14 | Tamanho máximo de valor de eixo | 25 · 60 | *Adotada:* **25** (garante ≥39 caracteres para a base do `xProd`); informativo 60 |
+| G14 | Tamanho máximo de valor de eixo | 25 · 60 | *Adotada:* **25** (garante ≥36 caracteres para a base do `xProd`); informativo 60 |
 | G15 | Atributos informativos na NF-e | fora da nota · `infAdProd` (muda `nfe-api` e `gestaofacil-api`) | **Decidida por você em 28/10:** **fora da nota** na v1. Se um cliente precisar de garantia ou composição impressa, vira fase própria nos dois serviços |
 | G16 | Dígito verificador do GTIN | só avisar · avisar e emitir `SEM GTIN` se inválido · não mexer | **Decidida em 28/10:** **avisar no cadastro e emitir `SEM GTIN` se o DV for inválido** (Fase 2) |
 | G17 | Atributo informativo em produto simples | já na v1 · depois | **Decidida em 28/10:** **depois da v1** (hoje só o modelo guarda informativos) |
@@ -787,7 +787,8 @@ a conferência manual no Firefox.
 
 **Como falha (critério):** (1) **número de queries por requisição** é determinístico: o teste
 afirma o valor exato do baseline, e subir exige justificativa; (2) tempo: **relativo ao baseline**
-(≤ +20% no p95 do mesmo cenário, na mesma máquina) e **teto absoluto** a ser fixado depois da
+(p95 até o dobro do mesmo cenário + 20 ms: medido em 28/10, o mesmo cenário oscila até ±40% entre
+execuções neste host, então 20% geraria falso alarme) e **teto absoluto** a ser fixado depois da
 primeira medição (proposta inicial: P1–P3 com p95 < 100 ms no servidor; P5 < 300 ms); (3) o plano do
 `EXPLAIN` não pode regredir: **medido em 28/10**, a busca de hoje usa o índice `(empresa_id, ativo)` e filtra
 nome/SKU/EAN em memória sobre as linhas da empresa (o `OR` com `ILIKE '%x%'` impede usar o índice de
