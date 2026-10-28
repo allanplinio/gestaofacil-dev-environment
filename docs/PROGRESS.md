@@ -14,6 +14,14 @@ Branch `feat/grade-variacoes` nos quatro repositórios (`gestaofacil-api`, `-fe`
 - **Ficou de fora:** XML real de compra de confecção (não há; a Fase 6 usa fixture sintética rotulada) e o teto
   absoluto definitivo (os tetos de 100 ms/300 ms do plano passaram com folga).
 
+## PLAN-GRADE — Fase 7: agrupar produtos que já existem (28/10/2026)
+
+- **Fechou:** `POST /produto-modelos/agrupar` (e `/agrupar/sugerir`): produtos simples viram variações de um modelo novo ou existente; **estoque, SKU, código de barras, preço, impostos e histórico não mudam**
+  (testado comparando antes e depois); só o `nome` passa a ser composto pelo sistema (G5). Tudo ou nada; recusa produto que já é variação, repetido, combinação repetida e de outra empresa. No front: caixa de seleção
+  na lista de produtos, "Agrupar em modelo (N)" e o modal de grade foi generalizado (`GradeDeItensModal`, usado pela nota de entrada e por este fluxo); a sugestão vem do catálogo.
+- **Testes:** 9 novos (`AgruparProdutosTest`); suíte do gestaofacil-api: 1.112 passam, as 5 falhas de sempre mais o teste intermitente acima; `tsc` e build do front limpos.
+- **Atenção:** o nome do produto muda (ex.: "Camiseta Azul M" → "Camiseta - Azul - M"). Item de venda anterior ao congelamento (Fase 0b) que for reemitido sai com o nome novo; item novo congela.
+
 ## PLAN-GRADE — Fase 6: nota de entrada com variações (28/10/2026)
 
 - **Fechou:** `cProd` repetido na mesma nota não vincula pelo código (cai para descrição e EAN; também não vincula por `cProd` = SKU/EAN) — resolve o risco de vincular todos os tamanhos ao mesmo produto;
@@ -22,8 +30,8 @@ Branch `feat/grade-variacoes` nos quatro repositórios (`gestaofacil-api`, `-fe`
   (cria só as combinações que a nota trouxe, aceita modelo novo ou existente, leva o EAN válido para a variação, vincula cada item com origem `grade`, nunca vincula sozinho); `ModeloService::criarCombinacao`.
   Front: caixa de seleção por item e `CriarGradeModal` na conferência.
 - **Testes:** 17 novos (`GradeNaNotaDeEntradaTest`) com a fixture **sintética** `compra-confeccao-SINTETICA.xml` (cProd repetido, EAN por tamanho, tamanho na descrição); suíte 1.103 passam e as 54 de `Compras`
-  intactas, mais as 5 falhas de sempre. **Observado uma vez:** `ProdutoTest › estoque movements are immutable audit trail` falhou numa rodada completa e passou isolado 4 de 4 — ordena por `created_at` e
-  duas movimentações no mesmo segundo empatam (flaky, anterior à grade).
+  intactas, mais as 5 falhas de sempre. **Teste intermitente, anterior à grade:** `ProdutoTest › estoque movements are immutable audit trail` falhou em 2 de 8 rodadas completas e passa isolado (6 de 6, e em subconjuntos). Causa conferida:
+  `estoque_movimentacoes.created_at` tem precisão de segundos (`datetime_precision = 0`), duas movimentações no mesmo segundo empatam e o `orderBy created_at desc` não desempata. Não alterei o serviço (decisão sua).
 - **Não verificado:** nenhum XML real de fornecedor de moda foi observado (não há no projeto): se o fornecedor real repete `cProd`, manda EAN e põe o tamanho na descrição é premissa da fixture.
   A tela da conferência não foi conferida no navegador (sua).
 
