@@ -14,6 +14,15 @@ Branch `feat/grade-variacoes` nos quatro repositórios (`gestaofacil-api`, `-fe`
 - **Ficou de fora:** XML real de compra de confecção (não há; a Fase 6 usa fixture sintética rotulada) e o teto
   absoluto definitivo (os tetos de 100 ms/300 ms do plano passaram com folga).
 
+## PLAN-GRADE — Fase 3: estoque em matriz (28/10/2026)
+
+- **Fechou (gestaofacil-api):** `EstoqueService::lancarManualEmLote` (entrada/ajuste de várias variações, sem nota de entrada; `movimentarEmLote` aceita `nota_entrada_id` nulo sem mudar o contrato
+  de `lancarEmLote`/`estornarEmLote`), `ModeloService::lancarEstoque` (tudo ou nada, só variações do próprio modelo) e `POST /produto-modelos/{id}/estoque`. O `GET /produto-modelos/{id}` já devolvia a
+  matriz com os saldos e `estoque_total`.
+- **Testes:** 13 novos (`EstoqueEmMatrizTest`); suíte 1.072 passam, as mesmas 5 falhas. Cobrem soma por variação, movimentação própria, atomicidade, isolamento, venda e cancelamento baixando/devolvendo só a
+  variação vendida (pedido e PDV) e a suíte `Compras` inteira sem regressão.
+- **Ficou de fora:** tela da matriz (Fase 4).
+
 ## PLAN-GRADE — Fase 2: nota fiscal (28/10/2026)
 
 - **Fechou (gestaofacil-api):** `Produto::descricaoFiscal()` (xProd com os valores dos eixos, usado na venda, no item congelado e exposto como `descricao_fiscal` para a nota avulsa);

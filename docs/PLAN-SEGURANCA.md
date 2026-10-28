@@ -533,3 +533,8 @@ Commits: `nfe-api` 1d033e8, `gestaofacil-api` 110e647, `gestaofacil-fe` dbb5ed9.
 - [x] `xProd`: variação mantém os valores dos eixos no corte de 120 (`Produto::descricaoFiscal`); produto simples corta como antes (testes).
 - Risco aceito: GTIN com prefixo 2 e dígito verificador errado agora saem "SEM GTIN"; antes saíam como GTIN e a SEFAZ decidia. A aceitação real pela SEFAZ não foi testada.
 
+### 28/10/2026: produtos com variações — estoque em matriz (PLAN-GRADE, Fase 3)
+
+- [x] `POST /produto-modelos/{id}/estoque`: área `produtos` (vendedor 403), modelo de outra empresa 404, variação de outro modelo ou de outra empresa 422 e nada é gravado (testes). Quantidade ≤ 0 em qualquer linha recusa tudo (transação); `Auditoria` `modelo.estoque_lancado`.
+- [x] O saldo do modelo é sempre calculado (soma das variações); não existe coluna de total (teste), então não há como divergir.
+
