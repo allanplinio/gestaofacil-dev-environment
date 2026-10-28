@@ -538,3 +538,9 @@ Commits: `nfe-api` 1d033e8, `gestaofacil-api` 110e647, `gestaofacil-fe` dbb5ed9.
 - [x] `POST /produto-modelos/{id}/estoque`: área `produtos` (vendedor 403), modelo de outra empresa 404, variação de outro modelo ou de outra empresa 422 e nada é gravado (testes). Quantidade ≤ 0 em qualquer linha recusa tudo (transação); `Auditoria` `modelo.estoque_lancado`.
 - [x] O saldo do modelo é sempre calculado (soma das variações); não existe coluna de total (teste), então não há como divergir.
 
+### 28/10/2026: produtos com variações — nota de entrada (PLAN-GRADE, Fase 6)
+
+- [x] `POST /notas-entrada/{id}/grade` e `/grade/sugerir`: área `produtos` (vendedor 403), nota de outra empresa 404, item de outra nota ou ignorado e nota fora de rascunho 422 (testes); `modelo_id` validado com `empresa_id`; tudo ou nada em transação; `Auditoria` `nota_entrada.grade_criada`.
+- [x] A sugestão não grava nada e só usa valores do catálogo da própria empresa (teste: itens inalterados depois de sugerir).
+- [x] O EAN da nota só vai para a variação se for GTIN válido e nenhum outro produto da empresa o usar.
+

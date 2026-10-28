@@ -14,6 +14,19 @@ Branch `feat/grade-variacoes` nos quatro repositórios (`gestaofacil-api`, `-fe`
 - **Ficou de fora:** XML real de compra de confecção (não há; a Fase 6 usa fixture sintética rotulada) e o teto
   absoluto definitivo (os tetos de 100 ms/300 ms do plano passaram com folga).
 
+## PLAN-GRADE — Fase 6: nota de entrada com variações (28/10/2026)
+
+- **Fechou:** `cProd` repetido na mesma nota não vincula pelo código (cai para descrição e EAN; também não vincula por `cProd` = SKU/EAN) — resolve o risco de vincular todos os tamanhos ao mesmo produto;
+  de-para guarda uma linha por tamanho quando o código se repete (índice único passou a incluir `descricao_fornecedor`, migration sem alterar linhas existentes; `cProd` que identifica o item atualiza a linha do
+  código, como sempre); `SugestaoDeGrade` (casa a descrição com valores **que a empresa já tem no catálogo**, nada de lista fixa de tamanhos); `CriadorDeGrade` + `POST /notas-entrada/{id}/grade` e `/grade/sugerir`
+  (cria só as combinações que a nota trouxe, aceita modelo novo ou existente, leva o EAN válido para a variação, vincula cada item com origem `grade`, nunca vincula sozinho); `ModeloService::criarCombinacao`.
+  Front: caixa de seleção por item e `CriarGradeModal` na conferência.
+- **Testes:** 17 novos (`GradeNaNotaDeEntradaTest`) com a fixture **sintética** `compra-confeccao-SINTETICA.xml` (cProd repetido, EAN por tamanho, tamanho na descrição); suíte 1.103 passam e as 54 de `Compras`
+  intactas, mais as 5 falhas de sempre. **Observado uma vez:** `ProdutoTest › estoque movements are immutable audit trail` falhou numa rodada completa e passou isolado 4 de 4 — ordena por `created_at` e
+  duas movimentações no mesmo segundo empatam (flaky, anterior à grade).
+- **Não verificado:** nenhum XML real de fornecedor de moda foi observado (não há no projeto): se o fornecedor real repete `cProd`, manda EAN e põe o tamanho na descrição é premissa da fixture.
+  A tela da conferência não foi conferida no navegador (sua).
+
 ## PLAN-GRADE — Fase 5: busca do caixa, pedido e nota avulsa (28/10/2026)
 
 - **Fechou:** `GET /produtos?agrupar=1` (`Grade\BuscaAgrupada`): variações agrupadas no modelo (eixos, variações ativas, saldo e combinação de cada uma), produto simples como sempre,
