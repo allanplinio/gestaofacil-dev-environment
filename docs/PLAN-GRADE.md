@@ -1,11 +1,22 @@
 # PLAN-GRADE.md — Produtos com variações e atributos abertos — detalhamento da F1
 
-**Status:** **PLANO — nada implementado.** Escrito em 2026-10-22; **reescrito em 2026-10-27** para
-atributos abertos (estilo WooCommerce) e com os riscos de emissão de NF-e reavaliados contra o
-código de `gestaofacil-api` e `nfe-api` nesta data. Em 27/10 você escolheu incluir o **snapshot fiscal no item como fase própria antes da grade** (Fase 0b). As decisões da §8 marcadas como *aberta* ainda
-precisam da sua resposta; as marcadas como *adotada* entram no desenho como recomendação e podem
-ser revogadas antes da Fase 1 (nada de campo novo, tabela nova ou duplicação de dado além do que
-está descrito aqui).
+**Status:** **IMPLEMENTADO em 28/10/2026** na branch `feat/grade-variacoes` (gestaofacil-api, gestaofacil-fe,
+gestaofacil-e2e e este repositório). O passo a passo, os números de teste e o que ficou de fora de cada fase
+estão no [`PROGRESS.md`](./PROGRESS.md). Escrito em 22/10/2026 e reescrito em 27/10/2026 (atributos abertos,
+snapshot fiscal, desempenho, editar/remover variação).
+
+**Onde a implementação difere deste plano ou deixa pendente:**
+- **Nome do modelo até 150 caracteres** (não 200) e tolerância relativa de tempo dos testes de desempenho de 2× + 20 ms (§5.1, §11).
+- **Fase 6 foi feita sem XML real de fornecedor de moda** (não há no projeto): usa a fixture sintética
+  `compra-confeccao-SINTETICA.xml`. O comportamento do fornecedor real segue em §10.
+- **Não feito, depende de você:** emissão em homologação de nota com variações e de produto comum depois do
+  snapshot (envia dado à SEFAZ), confirmação do contador (§6.1 E4), alinhar `PLAN-PRE-BETA.md` §7/D7 e
+  `PLAN-LANCAMENTO.md` (Fase 9, "mediante sua confirmação"), clone limpo + migração do zero fora do container, e a
+  conferência visual das telas no Firefox em 360/390/768/1280 px.
+- **Fase 7 (agrupar produtos que já existem) foi implementada**, embora fosse cortável.
+- **Busca do caixa:** `GET /produtos?agrupar=1` continua na área `produtos`; o perfil `vendedor` não tem essa área
+  (fato anterior à grade) e não consegue buscar produto no caixa.
+- **Decisões:** todas fechadas (§8); G20 (índice trigram) segue condicional e não foi necessária pelos números medidos.
 
 **Documentos relacionados:** [`PLAN-PRE-BETA.md`](./PLAN-PRE-BETA.md) §7 (F1, que este plano
 detalha) · [`PLAN-LANCAMENTO.md`](./PLAN-LANCAMENTO.md) · [`PLAN-IMPORTACAO-XML.md`](./PLAN-IMPORTACAO-XML.md) ·
@@ -469,19 +480,19 @@ container vence o `phpunit.xml`; saída para arquivo, nunca `| head`). Baseline 
 pré-existentes do `gestaofacil-api` deve ser registrado na Fase 0 e comparado ao fim de cada fase.
 
 ### Fase 0 — Decisões e pré-requisitos
-- [ ] Decisões da §8: todas fechadas em 28/10 (G15 e G19 por você; as demais como recomendadas). Falta só G20 (§11), se a medição pedir índice.
+- [x] Decisões da §8: todas fechadas em 28/10 (G15 e G19 por você; as demais como recomendadas). Falta só G20 (§11), se a medição pedir índice.
 - [ ] (Em 28/10 não há XML real de confecção à disposição: a Fase 6 foi implementada com fixture
       **sintética, rotulada como tal**, e o comportamento do fornecedor real segue na §10.)
       Obter **ao menos 1 XML real de compra de confecção** (e idealmente 2 fornecedores) e
       guardar em `tests/Fixtures/nfe-entrada/` (anonimizado se necessário). Conferir: `cProd`
       repete? tem `cEAN`? onde está o tamanho?
-- [ ] Rodar a suíte do `gestaofacil-api` e anotar o baseline de falhas.
-- [ ] **Linha de base de desempenho (§11):** criar `tests/Performance`, rodar P1–P3, P5 e P6 com
+- [x] Rodar a suíte do `gestaofacil-api` e anotar o baseline de falhas.
+- [x] **Linha de base de desempenho (§11):** criar `tests/Performance`, rodar P1–P3, P5 e P6 com
       a massa de 5.000 produtos e guardar os números no `PROGRESS.md` antes de qualquer alteração.
 - [ ] Confirmar com o contador: divergência de NCM entre variações; correção de tamanho errado
       pós-autorização (§6.1).
-- [ ] Confirmar a lista final de `Produto::CAMPOS_HERDADOS` contra `TributacaoDoItem::CAMPOS`.
-- [ ] Portão: nada a commitar além de fixtures e este plano ajustado → PROGRESS.
+- [x] Confirmar a lista final de `Produto::CAMPOS_HERDADOS` contra `TributacaoDoItem::CAMPOS`.
+- [x] Portão: nada a commitar além de fixtures e este plano ajustado → PROGRESS.
 
 ### Fase 0b — Snapshot fiscal completo no item (pré-requisito da grade; decidido em 27/10)
 
@@ -496,23 +507,23 @@ nota. **Vale para qualquer produto, com ou sem grade**, e pode ser entregue e us
 cortado em 120). As 7 alíquotas já estão lá.
 
 **Escopo e mudanças:**
-- [ ] Mapear, em `RegrasFiscais`/`NfeEmissaoService`/`FormularioNotaAvulsa`, **todo** campo de
+- [x] Mapear, em `RegrasFiscais`/`NfeEmissaoService`/`FormularioNotaAvulsa`, **todo** campo de
       `produtos` lido na montagem do payload (lista acima é o que já se viu; confirmar por leitura
       completa) e como o PDV (`pdv_venda_itens`) chega à nota.
-- [ ] Migration em `venda_itens` (e `pdv_venda_itens` se o PDV emitir por ele) com as colunas
+- [x] Migration em `venda_itens` (e `pdv_venda_itens` se o PDV emitir por ele) com as colunas
       novas, todas `nullable`. **Sem backfill** (G19): nenhum item existente é alterado; só o item
       criado depois da fase nasce com snapshot.
-- [ ] Novo objeto `DadosFiscaisDoItem` (irmão de `TributacaoDoItem`, **sem alterar** o contrato dele
+- [x] Novo objeto `DadosFiscaisDoItem` (irmão de `TributacaoDoItem`, **sem alterar** o contrato dele
       nem os `CAMPOS` que o usuário ajusta na tela de emissão): `deProduto()` na criação do item,
       `deRegistro()` na emissão.
-- [ ] `NfeEmissaoService::construirItens` e `FormularioNotaAvulsa::montarPayload` leem do item /
+- [x] `NfeEmissaoService::construirItens` e `FormularioNotaAvulsa::montarPayload` leem do item /
       do `formulario`, **não** do produto. No rascunho da nota avulsa, o snapshot é gravado em
       `formulario` na criação, não no envio.
-- [ ] **Ação explícita "atualizar dados fiscais a partir do cadastro"** na venda pendente, no
+- [x] **Ação explícita "atualizar dados fiscais a partir do cadastro"** na venda pendente, no
       rascunho e na nota rejeitada, mostrando o que mudaria (campo antes/depois) e só gravando após
       confirmação. Sem ela, quem corrige um NCM errado no produto para reenviar uma nota rejeitada
       não consegue mais fazê-lo por ali (comportamento que hoje funciona por acidente).
-- [ ] Itens sem snapshot (nulos, isto é, todos os anteriores à fase) continuam emitindo como hoje,
+- [x] Itens sem snapshot (nulos, isto é, todos os anteriores à fase) continuam emitindo como hoje,
       relendo o produto, e a emissão recusa só o que já recusa (decisão nº 12 do PLAN-IMPOSTOS). A
       ação "atualizar a partir do cadastro" fica indisponível para eles (não há o que comparar).
 - **Testes:** (1) editar NCM/CEST/unidade/nome/SKU/GTIN do produto **depois** da venda não muda o
@@ -524,24 +535,24 @@ cortado em 120). As 7 alíquotas já estão lá.
   `down()` testado em banco com vendas emitidas e não emitidas, conferindo que as linhas antigas ficam idênticas.
 - [ ] Emissão em **homologação** de uma nota de produto comum depois do snapshot, **somente com
       sua autorização**, e confronto do XML com o de antes da mudança (devem ser idênticos).
-- [ ] Desempenho (§11): repetir P5 e P6; nº de queries igual ao da linha de base.
-- [ ] Portão completo; registrar a mudança em `PLAN-IMPOSTOS.md` (decisão nº 10 ampliada),
+- [x] Desempenho (§11): repetir P5 e P6; nº de queries igual ao da linha de base.
+- [x] Portão completo; registrar a mudança em `PLAN-IMPOSTOS.md` (decisão nº 10 ampliada),
       `DATA-MODEL.md` e `PLAN-SEGURANCA.md`.
 
 ### Fase 1 — Atributos, modelo de dados e serviço de grade (API)
-- [ ] Migrations: `atributos`, `atributo_valores`, `produto_modelos`, `modelo_atributos`,
+- [x] Migrations: `atributos`, `atributo_valores`, `produto_modelos`, `modelo_atributos`,
       `modelo_atributo_valores`, `produto_atributo_valores`; `produtos.modelo_id/chave_variacao/
       variacao_rotulo` + índice único parcial + índice `(empresa_id, modelo_id)`. `down()` testado.
-- [ ] Models com CompanyScope; `Produto::modelo()`, `Produto::CAMPOS_HERDADOS`; factories e
+- [x] Models com CompanyScope; `Produto::modelo()`, `Produto::CAMPOS_HERDADOS`; factories e
       estado de variação na `ProdutoFactory`.
-- [ ] `CatalogoDeAtributos` (normalização, achar-ou-criar, autocompletar, renomear, mesclar com
+- [x] `CatalogoDeAtributos` (normalização, achar-ou-criar, autocompletar, renomear, mesclar com
       detecção de conflito) e `ModeloService` (criar em matriz idempotente, adicionar valor de
       eixo, compor nome/rótulo/chave/SKU ≤60, propagar padrões, inativar/reativar em massa) —
       tudo em transação.
-- [ ] Controllers + rotas (§5.3, sem estoque) + validação com `empresa_id` nos `exists`, teto de 3
+- [x] Controllers + rotas (§5.3, sem estoque) + validação com `empresa_id` nos `exists`, teto de 3
       eixos e 200 variações, valor de eixo ≤25 caracteres, `Auditoria`.
-- [ ] Regra: `Produto::buscar`/`index` continuam funcionando; produto simples intocado.
-- [ ] Desempenho (§11): com 5.000 simples + 6.000 variações, repetir P1–P3 e medir P7–P9; falhar se passar do orçamento; decidir G20 com o número na mão.
+- [x] Regra: `Produto::buscar`/`index` continuam funcionando; produto simples intocado.
+- [x] Desempenho (§11): com 5.000 simples + 6.000 variações, repetir P1–P3 e medir P7–P9; falhar se passar do orçamento; decidir G20 com o número na mão.
 - **Testes (Pest, `tests/Feature/Products/ModeloGradeTest.php`, `AtributosTest.php` + `tests/Unit`):**
   "Azul", "azul " e "ÁZUL" resolvem o mesmo valor; autocompletar só da empresa logada; matriz
   N×M×K cria o produto cartesiano; repetir não duplica nem sobrescreve edição; adicionar valor cria
@@ -557,15 +568,15 @@ cortado em 120). As 7 alíquotas já estão lá.
   funciona, reativar volta; tirar valor do modelo não apaga variação; tirar eixo com colisão → 409;
   nenhuma dessas operações altera `estoque_atual` nem movimentações; permissões por perfil; produto simples continua criando e editando
   como antes.
-- [ ] Portão: revisar (`/code-review`, `/simplify`) → testar → commitar → PROGRESS → PLAN-SEGURANCA.
+- [x] Portão: revisar (`/code-review`, `/simplify`) → testar → commitar → PROGRESS → PLAN-SEGURANCA.
 
 ### Fase 2 — Nota fiscal: descrição, código e GTIN (a fase de maior risco fiscal)
-- [ ] `Produto::descricaoFiscal()` (E2) e uso em `NfeEmissaoService` (venda/NFC-e); expor no
+- [x] `Produto::descricaoFiscal()` (E2) e uso em `NfeEmissaoService` (venda/NFC-e); expor no
       recurso de produto para pré-preencher a nota avulsa; `FormularioNotaAvulsa` continua
       avisando (`max:120`), não cortando.
-- [ ] `RegrasFiscais::gtin()`: não enviar código de prefixo 20–29 (E3a). Conferência de DV conforme
+- [x] `RegrasFiscais::gtin()`: não enviar código de prefixo 20–29 (E3a). Conferência de DV conforme
       G16.
-- [ ] Validação de SKU: recusar colisão pós-corte de 60 (E1), no cadastro simples também.
+- [x] Validação de SKU: recusar colisão pós-corte de 60 (E1), no cadastro simples também.
 - **Testes:** nome de 150 caracteres com variação mantém os valores dos eixos no `descricao`
   enviado e tem ≤120; três eixos com valores de 25 caracteres ainda cabem; produto simples com nome
   longo continua cortando pelo fim (regressão); `gtin()` com EAN real de 13 dígitos sai, com
@@ -577,52 +588,52 @@ cortado em 120). As 7 alíquotas já estão lá.
 - [ ] Emissão em **homologação** de uma NF-e com duas variações do mesmo modelo, **somente com sua
       autorização** (envia dado à SEFAZ): confirma `cProd`/`xProd`/`SEM GTIN` aceitos e esclarece
       o que a §10 deixa sem verificação.
-- [ ] Portão completo.
+- [x] Portão completo.
 
 ### Fase 3 — Estoque em matriz
-- [ ] `EstoqueService`: `lancarEmLote`/`movimentarEmLote` aceitam movimento sem `nota_entrada_id`
+- [x] `EstoqueService`: `lancarEmLote`/`movimentarEmLote` aceitam movimento sem `nota_entrada_id`
       (entrada/ajuste manual em lote) sem alterar o contrato atual das notas de entrada.
-- [ ] Endpoint `POST /produto-modelos/{id}/estoque`; `GET /{id}` devolve matriz com saldos.
+- [x] Endpoint `POST /produto-modelos/{id}/estoque`; `GET /{id}` devolve matriz com saldos.
 - **Testes:** entrada em lote soma por variação e grava movimentação; quantidade ≤ 0 recusa tudo
   (transação, nada parcial); variação de outro modelo/empresa recusada; saldo do modelo = soma;
   venda de variação baixa só aquela; estorno de venda devolve só aquela; lançamento de nota de
   entrada existente **não regride** (suíte `Compras` inteira verde).
-- [ ] Portão completo.
+- [x] Portão completo.
 
 ### Fase 4 — Front: cadastro, lista, estoque e catálogo
-- [ ] Tipos (`Produto` ganha `modelo_id/variacao_rotulo/descricao_fiscal`; `ProdutoModelo`,
+- [x] Tipos (`Produto` ganha `modelo_id/variacao_rotulo/descricao_fiscal`; `ProdutoModelo`,
       `Atributo`, `AtributoValor`), `produtoModeloApi` e `atributoApi` em `services/api.ts`.
-- [ ] Componente de campo com autocompletar (atributo e valor, criar ao digitar).
-- [ ] `ProdutoForm` com modo variações (atributos, eixo/informativo, grades prontas,
+- [x] Componente de campo com autocompletar (atributo e valor, criar ao digitar).
+- [x] `ProdutoForm` com modo variações (atributos, eixo/informativo, grades prontas,
       pré-visualização); tela do modelo (matriz de estoque e preço, "aplicar a todas", alerta de
       variação divergente e de EAN repetido).
-- [ ] `Produtos` agrupada com linha expansível; filtros preservados.
-- [ ] Tela opcional de manutenção do catálogo (renomear, mesclar, apagar sem uso) — cortável.
-- [ ] `data-testid` novos entram na tabela "Seletores usados pelo E2E" do `gestaofacil-fe/CLAUDE.md`.
+- [x] `Produtos` agrupada com linha expansível; filtros preservados.
+- [x] Tela opcional de manutenção do catálogo (renomear, mesclar, apagar sem uso) — cortável.
+- [x] `data-testid` novos entram na tabela "Seletores usados pelo E2E" do `gestaofacil-fe/CLAUDE.md`.
 - **Testes:** `tsc`/build limpo; regra pura de combinações (produto cartesiano, ordem dos eixos,
   grade pronta) em módulo `utils/` testável isoladamente (checar com o `esbuild` do container, pois
   não há eslint/runner instalado — ver `reference_fe_lint_ausente`); conferência visual no Firefox
   feita por você.
-- [ ] Portão completo.
+- [x] Portão completo.
 
 ### Fase 5 — Front: PDV, pedido e nota avulsa
-- [ ] `GET /produtos?agrupar=1` (API) e `ProdutoBusca` agrupando; componente `GradeSeletor`
+- [x] `GET /produtos?agrupar=1` (API) e `ProdutoBusca` agrupando; componente `GradeSeletor`
       (matriz com saldo; lista para 3 eixos) usado no PDV, `VendaForm` e `NotaForm`.
-- [ ] Leitor/Enter com código exato continua indo direto à variação.
-- [ ] Desempenho (§11): P1–P4 com `agrupar=1`; você confere no Firefox o tempo até a sugestão no PDV (nome e leitura de código).
+- [x] Leitor/Enter com código exato continua indo direto à variação.
+- [x] Desempenho (§11): P1–P4 com `agrupar=1`; você confere no Firefox o tempo até a sugestão no PDV (nome e leitura de código).
 - **Testes:** Pest do endpoint agrupado (ordem, saldo, inativos ocultos, empresa); venda no PDV com
   duas variações do mesmo modelo baixa cada saldo; pedido e nota avulsa com variação; regressão do
   PDV com produto simples.
-- [ ] Portão completo.
+- [x] Portão completo.
 
 ### Fase 6 — Nota de entrada com variações
-- [ ] `ResolvedorDeProdutos`: `cProd` repetido na mesma nota ⇒ de-para por código ambíguo;
+- [x] `ResolvedorDeProdutos`: `cProd` repetido na mesma nota ⇒ de-para por código ambíguo;
       migration que inclui `descricao_fornecedor` no índice único do de-para; `LancamentoNotaService`
       grava o de-para por variação.
-- [ ] Ação em massa "Criar grade com os itens selecionados" (API em `AcoesEmMassa` + modal em
+- [x] Ação em massa "Criar grade com os itens selecionados" (API em `AcoesEmMassa` + modal em
       `ConferenciaNotaEntrada`): sugere valores a partir do catálogo, o usuário confirma, cria e
       vincula.
-- [ ] Lançamento cria/atualiza variações e dá entrada por variação.
+- [x] Lançamento cria/atualiza variações e dá entrada por variação.
 - **Testes:** com o XML de confecção da Fase 0: (1) 1ª importação cria grade e vincula;
   (2) 2ª importação do mesmo fornecedor vincula tudo sozinha; (3) `cProd` repetido não vincula
   tamanhos diferentes à mesma variação; (4) EAN único por variação casa; (5) EAN duplicado em duas
@@ -630,14 +641,14 @@ cortado em 120). As 7 alíquotas já estão lá.
   conversão por variação; (8) sugestão só a partir de valores já existentes no catálogo, descrição
   sem valor conhecido → sem sugestão, nunca vincula sozinha; regressão: XML de aviamentos (313
   itens) com o mesmo resultado de antes.
-- [ ] Portão completo.
+- [x] Portão completo.
 
 ### Fase 7 — Ferramenta opcional: agrupar produtos existentes
 Só se o piloto já tiver produtos soltos tipo "Camiseta Azul M".
-- [ ] Ação na lista: selecionar produtos → "agrupar em modelo" (define o valor de cada eixo para
+- [x] Ação na lista: selecionar produtos → "agrupar em modelo" (define o valor de cada eixo para
       cada produto; não altera estoque nem histórico).
 - **Testes:** agrupa sem alterar `estoque_atual`, SKU nem vendas; recusa produto de outra empresa.
-- [ ] Portão completo. (Cortável sem afetar o resto.)
+- [x] Portão completo. (Cortável sem afetar o resto.)
 
 ### Fase 8 — E2E (Playwright)
 Princípios do `PLAN-E2E.md` mantidos: nenhum teste emite documento fiscal fora da suíte fiscal
@@ -645,50 +656,50 @@ com gateway fake; dado de apoio por API; sem `waitForTimeout`; seletor por acess
 
 **Ajustes nos testes existentes** (a variação é produto, então a maioria segue verde; o que muda
 é onde a tela mudou):
-- [ ] `pages/ProdutoPage.ts`: `ProdutoFormPage` ganha o seletor do tipo (simples/variações) e
+- [x] `pages/ProdutoPage.ts`: `ProdutoFormPage` ganha o seletor do tipo (simples/variações) e
       fixa **simples** como padrão para `cadastra um produto pela tela` (CT-E2E-004).
-- [ ] `pages/PdvPage.ts` e `PedidoPage.ts`: o resultado da busca pode ser um modelo; métodos
+- [x] `pages/PdvPage.ts` e `PedidoPage.ts`: o resultado da busca pode ser um modelo; métodos
       `adicionarPorBusca`/`adicionarPorCodigo` ganham `escolherVariacao({atributo: valor, …})`;
       busca de produto simples permanece como está.
-- [ ] `pages/NotaEntradaPage.ts`: ação "Criar grade".
-- [ ] `helpers/api-helper.ts` e `helpers/dados.ts`: `criarModelo({eixos, informativos, …})`
+- [x] `pages/NotaEntradaPage.ts`: ação "Criar grade".
+- [x] `helpers/api-helper.ts` e `helpers/dados.ts`: `criarModelo({eixos, informativos, …})`
       devolve o modelo e as variações (por API); `produtoDeTeste` continua gerando simples.
-- [ ] Revisar `produto-cadastro`, `pdv-venda`, `pdv-codigo-barras`, `pedido-venda`,
+- [x] Revisar `produto-cadastro`, `pdv-venda`, `pdv-codigo-barras`, `pedido-venda`,
       `nota-entrada*`, `unicidade-por-empresa`, `rbac-isolamento` e `dashboard` rodando-os
       **antes** de editar nada: só mudar o que falhar por causa da mudança de tela.
 
 **Specs novos** (casos `CT-E2E-106` em diante em `docs/CASOS-DE-TESTE-E2E.md`):
-- [ ] `produto-grade.spec.ts` — cria modelo pela tela (Cor × Tamanho com grade pronta P–GG × 2
+- [x] `produto-grade.spec.ts` — cria modelo pela tela (Cor × Tamanho com grade pronta P–GG × 2
       cores), conferir 8 variações, autocompletar reaproveita "Branco" digitado como "branco",
       atributo informativo "Marca", preço por exceção, repetir criação não duplica, lista agrupada
       e expansão, inativar modelo.
-- [ ] `produto-grade-edicao.spec.ts` — adiciona um tamanho e uma cor a modelo existente (só as
+- [x] `produto-grade-edicao.spec.ts` — adiciona um tamanho e uma cor a modelo existente (só as
       combinações novas aparecem); edita preço, SKU e EAN de uma variação; tenta editar o nome da
       variação (recusado); troca o valor de uma variação; remove variação sem histórico (some) e
       com histórico (recusa e inativa; some do PDV, reativa e volta); tira um valor do modelo e vê a
       lista de variações afetadas.
-- [ ] `produto-grade-estoque.spec.ts` — entrada em matriz e saldo do modelo; movimentação por
+- [x] `produto-grade-estoque.spec.ts` — entrada em matriz e saldo do modelo; movimentação por
       variação.
-- [ ] `pdv-grade.spec.ts` — busca por nome abre a matriz; vende duas variações; saldo de cada
+- [x] `pdv-grade.spec.ts` — busca por nome abre a matriz; vende duas variações; saldo de cada
       cai; código de barras da variação entra direto; variação sem estoque é vendável.
-- [ ] `nota-entrada-grade.spec.ts` — importa o XML de confecção, "criar grade", lança, confere
+- [x] `nota-entrada-grade.spec.ts` — importa o XML de confecção, "criar grade", lança, confere
       estoque por variação; segunda importação vincula sozinha.
-- [ ] `fiscal/nfe-grade.spec.ts` (com `E2E_GATEWAY_FAKE=1 make test-e2e-fiscal`) — venda de duas
+- [x] `fiscal/nfe-grade.spec.ts` (com `E2E_GATEWAY_FAKE=1 make test-e2e-fiscal`) — venda de duas
       variações: no payload/XML, `cProd` e `xProd` por variação, `xProd` ≤120 com os valores dos
       eixos preservados, "SEM GTIN" para código interno, nota avulsa com a mesma descrição.
-- [ ] `rbac-isolamento`: modelo, atributo e valor de outra empresa → 404; vendedor sem área
+- [x] `rbac-isolamento`: modelo, atributo e valor de outra empresa → 404; vendedor sem área
       `produtos` não cria modelo.
-- [ ] Atualizar `PLAN-E2E.md` (estado e contagem), `docs/CASOS-DE-TESTE-E2E.md` (módulo novo e
+- [x] Atualizar `PLAN-E2E.md` (estado e contagem), `docs/CASOS-DE-TESTE-E2E.md` (módulo novo e
       matriz de cobertura), `docs/MAPA-SISTEMA.md` e a tabela de seletores.
-- [ ] Rodar a suíte inteira em chromium **e** firefox; conferir `nfe_emissoes = 0` ao fim da
+- [x] Rodar a suíte inteira em chromium **e** firefox; conferir `nfe_emissoes = 0` ao fim da
       suíte comum (guarda de NFC-e).
-- [ ] Portão completo.
+- [x] Portão completo.
 
 ### Fase 9 — Fechamento
-- [ ] `DATA-MODEL.md` (api e raiz), `REQUISITOS.md`, `PROGRESS.md` (api, fe, raiz).
+- [x] `DATA-MODEL.md` (api e raiz), `REQUISITOS.md`, `PROGRESS.md` (api, fe, raiz).
 - [ ] Alinhar `PLAN-PRE-BETA.md` §7/D7 e `PLAN-LANCAMENTO.md` ao que foi decidido (reescrever o
       corpo, não anotar), **mediante sua confirmação**.
-- [ ] `PLAN-SEGURANCA.md`: novos checks (isolamento de atributo/valor/modelo, autocompletar só da
+- [x] `PLAN-SEGURANCA.md`: novos checks (isolamento de atributo/valor/modelo, autocompletar só da
       empresa, limite de lote e de eixos, `exists` com empresa) e registro.
 - [ ] Auditoria de realidade (`/auditoria-realidade`) sobre a feature: nada de mock, nada
       "pronto" sem rodar; tela conferida por você no Firefox.

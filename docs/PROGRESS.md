@@ -14,6 +14,18 @@ Branch `feat/grade-variacoes` nos quatro repositórios (`gestaofacil-api`, `-fe`
 - **Ficou de fora:** XML real de compra de confecção (não há; a Fase 6 usa fixture sintética rotulada) e o teto
   absoluto definitivo (os tetos de 100 ms/300 ms do plano passaram com folga).
 
+## PLAN-GRADE — Fases 8 e 9: E2E e fechamento (28/10/2026)
+
+- **E2E (gestaofacil-e2e):** 7 specs/blocos novos e `ModeloPage` (ver `PLAN-E2E.md`, casos `CT-E2E-106` a `114`). Rodado do zero: normal (Chromium + Firefox) **241 passam**, 13 pulados, **2 falham** (`senha.spec` 077 e 003, Chromium,
+  422 ao definir senha; sem relação com variações, causa não investigada); fiscal (gateway fake) **80 passam**, **1 falha** (`CT-064`, cancelamento após 24 h: teste dependente de horário e fuso).
+  O E2E achou dois defeitos de tela meus, já corrigidos no front: caixa de erro vazia no formulário de modelo e campo de estoque que aceitava decimal em unidade inteira.
+- **Efeito colateral do ambiente (importante):** `make test-api`/`artisan test` roda como root no container e cria o `storage/logs/laravel-AAAA-MM-DD.log` do dia sem permissão para o PHP-FPM; a partir daí tudo que registra
+  em log (convite por e-mail, com `MAIL_MAILER=log`) responde 500 e derruba os specs de usuário/plataforma. Resolvido com `chmod 666` no arquivo do dia; vale para qualquer pessoa que rode os testes antes de abrir o app.
+- **Fechamento:** `DATA-MODEL.md`, `REQUISITOS.md` (§11b), `PLAN-SEGURANCA.md`, `PROGRESS.md` dos três repositórios e `PLAN-GRADE.md` (status, divergências e pendências) atualizados. Migração do zero conferida pela suíte Pest
+  (cada rodada migra o banco de teste do zero) e pelo `make test-db-reset` do E2E; o `down()` das três migrations foi testado.
+- **Não feito (depende de você):** emissão em homologação (envia dado à SEFAZ), confirmação do contador, alinhar `PLAN-PRE-BETA.md` §7/D7 e `PLAN-LANCAMENTO.md`, clone limpo fora do container, conferência visual no Firefox,
+  XML real de fornecedor de moda. Auditoria de realidade completa (`/auditoria-realidade`) não rodei: conferi à mão que não há mock no código novo e que cada afirmação deste PROGRESS tem teste que passou.
+
 ## PLAN-GRADE — Fase 7: agrupar produtos que já existem (28/10/2026)
 
 - **Fechou:** `POST /produto-modelos/agrupar` (e `/agrupar/sugerir`): produtos simples viram variações de um modelo novo ou existente; **estoque, SKU, código de barras, preço, impostos e histórico não mudam**

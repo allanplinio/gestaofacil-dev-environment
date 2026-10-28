@@ -582,6 +582,17 @@ GestãoFácil pode lançar v1 SOMENTE quando a API nfe-api tiver:
 
 ---
 
+## 11b. Módulo: Produtos com variações (28/10/2026)
+
+Detalhe e decisões em `PLAN-GRADE.md`. O que o sistema promete:
+
+- Um produto (modelo) pode ter variações por **atributos abertos** que o usuário cria ao digitar (cor, tamanho, memória, voltagem…), com autocompletar do que a empresa já usou. Até 3 atributos geram variação; os demais são informativos (marca, material…) e não vão para a nota fiscal.
+- Cada variação é um produto: estoque, SKU, código de barras e preço próprios; entra na nota como item independente, com `xProd` que mantém os valores dos eixos.
+- O usuário pode **adicionar, editar e remover** variações a qualquer momento. Variação com história (movimentação, venda, nota de entrada) não se exclui: inativa-se.
+- O caixa busca pelo modelo e escolhe a variação em uma matriz com o saldo; o leitor de código de barras vai direto na variação.
+- A nota de entrada de fornecedor de moda cria o modelo e as variações a partir dos itens, sem vincular sozinha.
+- O que a nota lê do produto (NCM, CEST, unidade, origem, SKU, GTIN, descrição) fica congelado no item da venda; corrigir o cadastro depois exige a ação explícita "atualizar dados fiscais a partir do cadastro".
+
 ## 12. Fora de escopo nesta fase (fica para depois)
 
 - Módulo Financeiro (contas a pagar/receber, fluxo de caixa)
