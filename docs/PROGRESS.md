@@ -14,6 +14,18 @@ Branch `feat/grade-variacoes` nos quatro repositórios (`gestaofacil-api`, `-fe`
 - **Ficou de fora:** XML real de compra de confecção (não há; a Fase 6 usa fixture sintética rotulada) e o teto
   absoluto definitivo (os tetos de 100 ms/300 ms do plano passaram com folga).
 
+## PLAN-GRADE — Fase 0b: snapshot fiscal no item (28/10/2026)
+
+- **Fechou (gestaofacil-api):** `venda_itens` congela NCM, CEST, unidade, origem, ST, `cProd`, GTIN e `xProd` (10 colunas, `snapshot_fiscal`);
+  nota avulsa congela por item no `formulario`; `DadosFiscaisDoItem` (produto "efetivo" para as regras) e `AtualizadorDeDadosFiscais`
+  (`GET/POST .../dados-fiscais` na venda e na nota avulsa: diff campo a campo, só grava no POST, só com a nota ainda corrigível). Sem backfill (G19).
+- **Testes:** 22 novos (`DadosFiscaisCongeladosTest`); suíte do gestaofacil-api 948 passam e as mesmas 5 falhas de antes (nenhuma nova).
+- **Desempenho:** P5 igual (54 queries); P6 de 27 para 23 queries (as três validações de NCM/CEST/unidade viraram uma consulta), com item antigo e com item congelado.
+  Linha de base do P6 regravada por isso.
+- **Ficou de fora:** botão "atualizar dados fiscais a partir do cadastro" no front (a API está pronta; entra na fase do front, com o aviso "cadastro mudou");
+  homologação na SEFAZ de uma nota de produto comum depois do snapshot (exige sua autorização); item de PDV aberto que só vira venda no `finalizarComNfce`
+  congela na hora de finalizar, não na hora de bipar.
+
 ## Cadastro de empresa pela plataforma (19/10/2026)
 
 - **Fechou:** `PLAN-ADMIN-SISTEMA.md` inteiro. Tela `/plataforma/empresas/nova` (sem login, protegida por chave digitada), `POST /api/v1/plataforma/empresas` com 3 camadas (flag, limite por IP, chave), provisionamento no `nfe-api` (emitente sem certificado, com desfazer), convite por e-mail, `PlanoSeeder`. Commits: nfe-api `df3fbab`, gestaofacil-api `47ba5a1`, gestaofacil-fe `fc57655`.

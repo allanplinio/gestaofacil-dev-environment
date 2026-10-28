@@ -509,3 +509,11 @@ Commits: `nfe-api` 1d033e8, `gestaofacil-api` 110e647, `gestaofacil-fe` dbb5ed9.
 
 - [x] `APP_TIMEZONE` padrão `America/Sao_Paulo` e sessão do Postgres no mesmo fuso (igual ao nfe-api, que já era assim). Corrige "hoje" depois das 21h em Recife na lista de notas (teste novo; reverter o padrão para UTC o faz falhar).
 - Risco aceito: dado antigo gravado em UTC é lido 3 h adiantado; dev será zerado e a produção ainda não tem dados.
+
+### 28/10/2026: snapshot fiscal no item (PLAN-GRADE, Fase 0b)
+
+- [x] `GET/POST /vendas/{venda}/dados-fiscais` e `/nfe-emissoes/{emissao}/dados-fiscais`: venda ou nota de outra empresa responde 404 (testes); atualização só em venda sem nota ou com nota rejeitada e em rascunho/rejeitada avulsa, senão 409 (testes). Atualização grava `Auditoria` (`nfe.dados_fiscais_atualizados`).
+- [x] O navegador não decide o que foi congelado: o `snapshot` enviado no formulário da nota avulsa é descartado e refeito no servidor (teste "snapshot forjado").
+- [x] Migration sem backfill e com `down()` testado: item existente não é alterado (teste).
+- Risco aceito: item de venda criado antes da fase segue lendo o cadastro a cada emissão (decisão de não alterar dado antigo, G19).
+

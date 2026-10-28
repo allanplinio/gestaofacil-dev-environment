@@ -547,6 +547,12 @@ CREATE TABLE venda_itens (
 **Índices:**
 - INDEX(venda_id)
 
+**Atualização de 28/10/2026 (PLAN-GRADE Fase 0b):** o item congela o que a nota lê do produto. Colunas novas, todas
+`NULL` nos itens anteriores: `snapshot_fiscal BOOLEAN DEFAULT false`, `ncm VARCHAR(8)`, `cest VARCHAR(7)`,
+`unidade VARCHAR(10)`, `origem_icms TINYINT`, `origem_fabricacao BOOLEAN`, `tem_substituicao_tributaria BOOLEAN`,
+`codigo_produto VARCHAR(60)` (o `cProd`), `gtin VARCHAR(14)`, `descricao_produto VARCHAR(120)` (o `xProd`). As sete
+alíquotas da decisão nº 10 do PLAN-IMPOSTOS também vivem aqui. Este arquivo não lista todas as colunas atuais da tabela.
+
 ---
 
 ### Tabela: `venda_pagamentos`

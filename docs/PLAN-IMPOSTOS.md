@@ -40,6 +40,7 @@ avisa e registra; quem decide é quem emite.
 | 10 | O item da venda guarda a tributação **sempre**, mexida ou não | É registro, não configuração: olhando um pedido de seis meses atrás tem de dar para saber como ele foi feito. O sistema já faz isso com preço (`preco_unitario`, `desconto`, `subtotal` são gravados no item, não lidos do produto). E pedido que nunca virou NF não deixaria rastro nenhum da tributação |
 | 11 | Divergência entre o gravado e o cadastro **avisa, não recalcula** | Se a alíquota do produto mudar entre o pedido e a emissão, o item mostra "cadastro mudou: 18% → 12%" com um clique para adotar. Quem decide é o usuário |
 | 12 | Nulo no item significa **"o produto não tinha configuração naquele momento"** | Único significado possível depois da decisão nº 10. Não bloqueia criar o pedido — documento comercial não para por falta de dado fiscal —, mas a emissão recusa enquanto estiver vazio |
+| 13 | O item guarda também **o que a nota lê do produto**, não só as alíquotas (28/10/2026, PLAN-GRADE Fase 0b) | NCM, CEST, unidade, origem, flag de ST, `cProd`, GTIN e `xProd` ficam congelados no item (`venda_itens.snapshot_fiscal` e colunas próprias; `snapshot` por item no `formulario` da nota avulsa). Edição em lote de produto (modelo com variações) não pode mudar a nota. **Sem backfill:** item anterior segue lendo o cadastro. A decisão nº 11 ganhou a ação "atualizar dados fiscais a partir do cadastro" (`GET/POST /vendas/{id}/dados-fiscais`, `/nfe-emissoes/{id}/dados-fiscais`) |
 
 ### O que foi considerado e descartado
 
