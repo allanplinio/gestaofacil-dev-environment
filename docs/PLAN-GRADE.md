@@ -13,6 +13,10 @@ snapshot fiscal, desempenho, editar/remover variação).
   snapshot (envia dado à SEFAZ), confirmação do contador (§6.1 E4), alinhar `PLAN-PRE-BETA.md` §7/D7 e
   `PLAN-LANCAMENTO.md` (Fase 9, "mediante sua confirmação"), clone limpo + migração do zero fora do container, e a
   conferência visual das telas no Firefox em 360/390/768/1280 px.
+- **Fase 6b (volta do caminho, 28/10):** a nota emitida pelo sistema, importada de volta, acha as variações por EAN ou
+  SKU; uma lacuna (SKU > 60 caracteres cortado no `cProd`) foi corrigida no resolvedor (G21). Produto sem SKU
+  (`PROD-<id>`) não vincula, por decisão (G22). Testado com XML montado a partir das funções da emissão, não com
+  XML autorizado pela SEFAZ.
 - **Fase 7 (agrupar produtos que já existem) foi implementada**, embora fosse cortável.
 - **Busca do caixa:** `GET /produtos?agrupar=1` continua na área `produtos`; o perfil `vendedor` não tem essa área
   (fato anterior à grade) e não consegue buscar produto no caixa.
@@ -643,6 +647,23 @@ cortado em 120). As 7 alíquotas já estão lá.
   itens) com o mesmo resultado de antes.
 - [x] Portão completo.
 
+#### Fase 6b — Volta do caminho: a nota que o sistema emitiu entra pela importação (28/10)
+Pedido: pegar o produto que gerou a NF-e, montar o XML com o `cProd`/`cEAN`/`xProd` que a emissão
+produz (as mesmas funções: `RegrasFiscais::codigoProduto`/`gtin`, `Produto::descricaoFiscal`) e
+conferir se a importação o encontra. `tests/Feature/Compras/NotaEmitidaPeloSistemaTest.php`.
+- [x] Variações com EAN válido: o comprador com os mesmos EANs vincula uma a uma (origem `ean`).
+- [x] Variações sem EAN (`SEM GTIN`): o `cProd` (SKU) casa com o SKU do comprador (origem `sku`).
+- [x] A própria empresa importando a nota que emitiu acha as variações pelo SKU.
+- [x] **Lacuna achada e corrigida:** SKU com mais de 60 caracteres sai cortado no `cProd`; o casamento
+      exato falhava e o item virava "criar". `ResolvedorDeProdutos` agora, **só depois** do exato não
+      achar nada e **só** se o `cProd` tem exatamente 60 caracteres, aceita um único produto cujo SKU
+      começa com ele (D1 abaixo). Nenhum caminho que já vinculava mudou.
+- [x] EAN com DV errado ou prefixo 2 não sai na nota (`SEM GTIN`), então a importação não casa por ele
+      e cai no SKU.
+- [x] Produto sem SKU sai como `PROD-<id>`: documentado em teste; **não** vincula (D2 abaixo).
+- [x] Regressão: `Feature/Compras` + `Unit/Compras` (108) e suíte completa da API, ver PROGRESS.
+- [ ] Com **XML autorizado de verdade** (homologação) em vez do montado no teste: depende de você autorizar a emissão.
+
 ### Fase 7 — Ferramenta opcional: agrupar produtos existentes
 Só se o piloto já tiver produtos soltos tipo "Camiseta Azul M".
 - [x] Ação na lista: selecionar produtos → "agrupar em modelo" (define o valor de cada eixo para
@@ -730,6 +751,9 @@ com gateway fake; dado de apoio por API; sem `waitForTimeout`; seletor por acess
 | G17 | Atributo informativo em produto simples | já na v1 · depois | **Decidida em 28/10:** **depois da v1** (hoje só o modelo guarda informativos) |
 | G18 | Quais campos congelar no item (Fase 0b) | só os dados fiscais · também `cProd`, GTIN e descrição | **Decidida em 28/10:** **todos os listados na Fase 0b** (dados fiscais, `cProd`, GTIN e descrição) |
 | G19 | Backfill dos itens antigos | copiar o valor atual do produto · deixar nulo | **Decidida por você em 28/10:** **não alterar dado antigo nenhum.** Sem backfill: item existente fica com as colunas novas nulas e a emissão o trata como hoje (relê o produto). Só item criado depois da Fase 0b nasce com snapshot |
+| G21 | `cProd` cortado em 60 na nota emitida por este sistema (SKU de 61–100 caracteres) | só casamento exato · prefixo único quando o `cProd` tem 60 | **Adotada em 28/10:** **prefixo único**, só se o exato falhar e o `cProd` tiver 60; ambíguo não vincula. Cadastro já recusa SKU que colide no corte (Fase 2), então o prefixo é único por construção na própria empresa |
+| G22 | Produto sem SKU sai como `PROD-<id>`; importar essa nota | vincular `PROD-<id>` ao produto de mesmo id · não vincular | **Adotada em 28/10:** **não vincular.** O id é do emitente; em outra empresa casaria com produto errado. Quem quer o casamento define SKU. Aviso no cadastro fica como melhoria futura |
+| G23 | Como fechar a execução | commits por fase com push só ao final · push a cada fase | **Você, 28/10:** nova branch `feat/grade-variacoes` nos 4 repositórios, **commit após cada fase revisada, push só ao fim**; testes antigos mantidos, novos adicionados, E2E por último |
 | G20 | Índice trigram (`pg_trgm`) na busca de produtos | habilitar a extensão · só ajustar consulta | ***Aberta, condicional.*** Só se a medição da §11 estourar o orçamento; habilitar extensão no Postgres de produção é decisão sua |
 
 ## 9. Riscos
@@ -763,7 +787,9 @@ com gateway fake; dado de apoio por API; sem `waitForTimeout`; seletor por acess
 - Como a venda do PDV (`pdv_venda_itens`) chega à nota e se herda a tributação gravada em `venda_itens`.
 - Se `RegrasFiscais::icms`/`cfop` leem do produto mais campos do que a Fase 0b lista (a Fase 0b começa por esse mapeamento completo).
 - A lista final dos campos herdáveis (`CAMPOS_HERDADOS`) contra `TributacaoDoItem::CAMPOS`.
-- Nada deste documento foi executado: é leitura de código e dos planos existentes.
+- Este documento foi escrito antes da implementação; o que foi executado e medido está no [`PROGRESS.md`](./PROGRESS.md)
+  e na §11. Itens desta lista ainda sem resposta: XML de fornecedor de moda, aceitação do GTIN/`xProd` pela SEFAZ
+  (nenhuma emissão em homologação foi feita), e o PDV com dois códigos de etiqueta.
 
 ## 11. Desempenho — testes antes e depois (o PDV tem de continuar rápido)
 

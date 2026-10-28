@@ -14,6 +14,15 @@ Branch `feat/grade-variacoes` nos quatro repositórios (`gestaofacil-api`, `-fe`
 - **Ficou de fora:** XML real de compra de confecção (não há; a Fase 6 usa fixture sintética rotulada) e o teto
   absoluto definitivo (os tetos de 100 ms/300 ms do plano passaram com folga).
 
+## PLAN-GRADE — Fase 6b: volta do caminho, nota emitida importada de volta (28/10/2026)
+
+- **Fechou:** teste do ciclo produto → item da nota (mesmas funções da emissão: `codigoProduto`, `gtin`, `descricaoFiscal`) → XML → importação, em `tests/Feature/Compras/NotaEmitidaPeloSistemaTest.php` (6 casos).
+  Variação com EAN casa por EAN; sem EAN casa pelo `cProd` = SKU (comprador e própria empresa); EAN com DV errado sai `SEM GTIN` e cai no SKU; sem SKU sai `PROD-<id>`.
+- **Lacuna achada e corrigida (`ResolvedorDeProdutos`):** SKU de 61–100 caracteres sai cortado em 60 no `cProd` e o casamento exato não o achava. Agora, só se o exato não achou nada e o `cProd` tem 60 caracteres, vincula o único produto cujo SKU começa com ele. Ambíguo não vincula. Nenhum caminho anterior mudou.
+- **Decisões:** G21 (prefixo único) e G22 (`PROD-<id>` não vincula: o id é do emitente) no `PLAN-GRADE.md` §8.
+- **Testes:** `Compras` + `Unit/Compras` 108 passam; suíte completa 1.118 passam, 1 pulado, 6 falhas = as 5 de sempre + a intermitente `ProdutoTest › estoque movements are immutable audit trail` (já registrada, anterior à grade).
+- **Não verificado:** XML autorizado pela SEFAZ (o do teste é montado a partir do XML de fixture); comportamento de fornecedor de moda real.
+
 ## PLAN-GRADE — Fases 8 e 9: E2E e fechamento (28/10/2026)
 
 - **E2E (gestaofacil-e2e):** 7 specs/blocos novos e `ModeloPage` (ver `PLAN-E2E.md`, casos `CT-E2E-106` a `114`). Rodado do zero: normal (Chromium + Firefox) **241 passam**, 13 pulados, **2 falham** (`senha.spec` 077 e 003, Chromium,
