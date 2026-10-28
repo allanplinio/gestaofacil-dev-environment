@@ -1,5 +1,19 @@
 # PROGRESS.md — GestãoFácil v1 Implementation Roadmap
 
+## PLAN-GRADE — Fase 0: linha de base (28/10/2026)
+
+Branch `feat/grade-variacoes` nos quatro repositórios (`gestaofacil-api`, `-fe`, `-e2e`, `-dev-environment`).
+
+- **Baseline de falhas do gestaofacil-api (antes de qualquer mudança):** 926 passam, 5 falham, 1 pulado
+  (`NaturezaOperacaoTest` token não configurado; `NfeEmissaoTest` double emit e modelo 55/65 ×3). Qualquer falha além
+  dessas 5 é regressão da grade.
+- **Desempenho (§11 do plano), medido no container, 5.000 produtos por empresa × 2 empresas** (`tests/Performance`,
+  fora da suíte padrão; `linha-de-base.json` guarda os números): busca por nome p95 36 ms · por EAN p95 21 ms · por SKU
+  p95 43 ms (2 queries cada) · checkout do PDV com 10 itens p95 100 ms, 54 queries · emissão de NF-e com 50 itens
+  89 ms, 27 queries (não cresce com o nº de itens). A busca usa o índice `(empresa_id, ativo)` e filtra em memória.
+- **Ficou de fora:** XML real de compra de confecção (não há; a Fase 6 usa fixture sintética rotulada) e o teto
+  absoluto definitivo (os tetos de 100 ms/300 ms do plano passaram com folga).
+
 ## Cadastro de empresa pela plataforma (19/10/2026)
 
 - **Fechou:** `PLAN-ADMIN-SISTEMA.md` inteiro. Tela `/plataforma/empresas/nova` (sem login, protegida por chave digitada), `POST /api/v1/plataforma/empresas` com 3 camadas (flag, limite por IP, chave), provisionamento no `nfe-api` (emitente sem certificado, com desfazer), convite por e-mail, `PlanoSeeder`. Commits: nfe-api `df3fbab`, gestaofacil-api `47ba5a1`, gestaofacil-fe `fc57655`.

@@ -788,7 +788,9 @@ a conferência manual no Firefox.
 afirma o valor exato do baseline, e subir exige justificativa; (2) tempo: **relativo ao baseline**
 (≤ +20% no p95 do mesmo cenário, na mesma máquina) e **teto absoluto** a ser fixado depois da
 primeira medição (proposta inicial: P1–P3 com p95 < 100 ms no servidor; P5 < 300 ms); (3) o plano do
-`EXPLAIN` de P2 tem de usar índice, não varredura sequencial. Teste de tempo roda no grupo
+`EXPLAIN` não pode regredir: **medido em 28/10**, a busca de hoje usa o índice `(empresa_id, ativo)` e filtra
+nome/SKU/EAN em memória sobre as linhas da empresa (o `OR` com `ILIKE '%x%'` impede usar o índice de
+`codigo_barras`); a Fase 1 confere que continua assim e não vira varredura da tabela inteira. Teste de tempo roda no grupo
 `performance`, **fora da execução padrão** (`make test-api ARGS="tests/Performance"`), porque tempo
 em máquina compartilhada oscila; as asserções de nº de queries e de uso de índice ficam também na
 suíte comum. Confirmar o registro da pasta `tests/Performance` no `phpunit.xml` na Fase 0.
