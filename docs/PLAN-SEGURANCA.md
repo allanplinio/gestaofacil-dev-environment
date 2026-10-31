@@ -544,3 +544,19 @@ Commits: `nfe-api` 1d033e8, `gestaofacil-api` 110e647, `gestaofacil-fe` dbb5ed9.
 - [x] A sugestão não grava nada e só usa valores do catálogo da própria empresa (teste: itens inalterados depois de sugerir).
 - [x] O EAN da nota só vai para a variação se for GTIN válido e nenhum outro produto da empresa o usar.
 
+
+### 30/10/2026: importação de produtos por planilha (PLAN-IMPORTACAO-PRODUTOS)
+
+- [x] Área `produtos` em todas as rotas `produtos/importacao/*`: vendedor 403, sem login 401, operador passa (teste `ImportacaoDeProdutosTest`).
+- [x] Isolamento: importação de outra empresa **e de outro usuário da mesma empresa** responde 404 em validar, confirmar e rejeitadas (testes); a pasta do estado é por empresa e o dono é conferido na leitura; SKU/código de barras de produto de outra empresa não bloqueia (teste).
+- [x] `empresa_id` nunca vem da planilha: o mapeamento só aceita os campos da lista (`empresa_id`, `ativo`, `modelo_id` dão 422, teste) e o produto é criado com a empresa do usuário logado.
+- [x] Id da importação só aceita UUID (`whereUuid`): `..%2F..` e `123` dão 404 sem tocar o disco (teste).
+- [x] Arquivo: tipo decidido pelo **conteúdo**, não pela extensão; recusa `.xls`, macro (`.xlsm`), zip que não é planilha, binário, zip-bomba (limite de 60 MB descomprimidos, 500 entradas), arquivo acima de 8 MB, mais de 500 linhas, 30 colunas, folha com linhas em branco demais; para de ler ao passar do teto (testes `LeitorDePlanilhaTest`). Nenhuma fórmula é executada: vale o valor guardado.
+- [x] Injeção por fórmula: texto que começa com `=` é guardado como texto no produto e, na planilha de rejeitadas, gravado como célula de texto (`StringCell`), nunca fórmula (teste inspeciona o XML da folha: sem `<f>`). O modelo para baixar só tem cabeçalhos e instruções fixas.
+- [x] Dado do cliente em repouso: a planilha original **não** é guardada; só as linhas lidas, em JSON no disco privado, com validade de 1 h (expirada → 410 e o arquivo é apagado) e o comando `produtos:limpar-importacoes` (agendado de hora em hora) apaga o que ninguém reabriu (testes).
+- [x] Limite de envios por minuto por usuário (`importacao-produtos`, padrão 10, `IMPORTACAO_ENVIOS_POR_MINUTO`); 429 traduzido na tela. O overlay do E2E sobe o valor, a produção não.
+- [x] Confirmação idempotente (trava + estado): clique duplo devolve o mesmo resultado sem duplicar nem auditar duas vezes (teste); duplicidade é reconferida na hora de gravar e tudo vai numa transação (cadastro simultâneo de SKU: 409 e nada é criado, teste com corrida simulada).
+- [x] Valor absurdo (`99999999999999`) vira erro da linha em vez de estourar o `decimal` do banco e derrubar o lote (teste). O teto vale só na importação; o cadastro manual não confere (ver pendência abaixo).
+- [x] Auditoria `produtos.importados` (empresa, usuário, id da importação, contagens, nome do arquivo, formato), sem nenhum dado da planilha (teste).
+- [x] Sem SQL cru nem execução de código no código novo (`grep` limpo em `Services/Produtos`, controller e comando).
+- [ ] **Pendência (não feita, fora do pedido):** o cadastro manual de produto (`POST/PATCH /produtos`) não limita o tamanho do preço/estoque; um valor acima de `decimal(12,2)` vira erro de banco (500) em vez de 422. A importação já trata; trazer o mesmo teto para `RegrasDeProduto` mudaria o cadastro manual e precisa de decisão.
