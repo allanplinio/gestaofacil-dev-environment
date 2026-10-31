@@ -1,5 +1,15 @@
 # PROGRESS.md — GestãoFácil v1 Implementation Roadmap
 
+## PLAN-GRADE — Ajustes após uso na tela e E2E dos informativos (30/10/2026)
+
+Achados pelo Allan testando o modelo "Celular sansung":
+- **Informativo não saía do modelo** (só aparecia em leitura). Novas rotas `POST` e `DELETE /produto-modelos/{modelo}/informativos[/{atributo}]` (`ModeloService::adicionarInformativo` / `removerInformativo`), ✕ na seção "Atributos informativos" e botão "Novo atributo informativo" na edição.
+- **Valor digitado sem Enter se perdia** ao guardar ("Informe pelo menos um valor para Marca"): `EixoEmEdicao.pendente` + `comPendente()` (`utils/grade.ts`) somam o texto do campo ao guardar, na criação e na edição. (Tentativa anterior, confirmar no blur, foi descartada: o chip que aparecia empurrava o botão e o clique se perdia — pegou o E2E.)
+- **Mensagem da tela de modelo** agora `sticky` no topo da área visível.
+- **Testes:** API `tests/Feature/Grade` 128 passam. E2E novo `produto-grade-informativos.spec.ts` (4 testes: adicionar, valor sem Enter, remover mantendo variações e estoque, recusa de informativo que já é eixo com a mensagem na área visível), chromium + firefox.
+- **Specs antigos que já estavam vermelhos antes disto** (a tela mudou depois da Fase 8: formulário começa sem atributo, "Guardar valores" não cria variação, criar modelo não gera variações) foram reescritos: `produto-grade.spec.ts` (3), `produto-grade-edicao.spec.ts` (2); `ModeloPage.ts` ganhou `guardarValores`, `montarVariacao`, `novoInformativo`, `removerInformativo`. Lição: a Fase 8 marcada `[x]` não estava mais verde — rodar a suíte `@grade` antes de dizer que a feature fecha.
+- **Conferido (30/10/2026):** `make test-e2e` completa: 249 passam, 13 pulados, 2 falham (`senha.spec.ts` 077 e 003, só chromium: "Link de recuperação expirou"). `E2E_GATEWAY_FAKE=1 make test-e2e-fiscal`: 80 passam, 2 pulados, 1 falha (`nfe-avulsa-regras` CT-064, prazo de 24 h do cancelamento). `fiscal/nfe-grade` passa (3/3). **As 3 falhas não são de grade** (token de senha e prazo de cancelamento, ambos dependem de horário); suspeita, **não verificada**, de ligação com a mudança de fuso de 20/10 (banco em horário de Brasília, teste manipulando horário em UTC). Tela conferida no Firefox pelo Allan; sem repositório git aqui, então não houve commit.
+
 ## PLAN-GRADE — Fase 0: linha de base (28/10/2026)
 
 Branch `feat/grade-variacoes` nos quatro repositórios (`gestaofacil-api`, `-fe`, `-e2e`, `-dev-environment`).

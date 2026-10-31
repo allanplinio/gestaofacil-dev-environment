@@ -724,7 +724,9 @@ com gateway fake; dado de apoio por API; sem `waitForTimeout`; seletor por acess
       empresa, limite de lote e de eixos, `exists` com empresa) e registro.
 - [ ] Auditoria de realidade (`/auditoria-realidade`) sobre a feature: nada de mock, nada
       "pronto" sem rodar; tela conferida por você no Firefox.
+      **Dispensada pelo Allan em 30/10/2026:** conferiu na tela e emitiu NF com produto de variação. Não executada.
 - [ ] Clone limpo + migração do zero (`migrate:fresh`) com a suíte verde.
+      **Dispensado pelo Allan em 30/10/2026.** Não executado (e os projetos não são repositórios git aqui).
 
 ---
 
