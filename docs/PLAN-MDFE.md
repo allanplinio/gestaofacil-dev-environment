@@ -420,7 +420,15 @@ CT-e fora; camada B (terceiro/CIOT) adiada; gateway em interface separada; peso 
   - Lacuna aberta: o pacote derivado para CNPJ alfa é gerado do XSD do vendor (maio/2025), **não do pacote oficial** NT 2025.001 v1.04, que ainda falta baixar (§12)
   - Suíte da nfe-api: 568 passam, **3 falham, e as 3 já falhavam antes** (conferido desfazendo as mudanças): `CertificateExpirationTest` (limiares de 30/15/7 dias),
     `NaturezaOperacaoCrudTest` (isolamento entre clientes) e `NfePollingTest` (comparação de uuid). Qualquer falha além dessas é regressão do MDF-e
-- [ ] **Fase 1** — nfe-api: emitir e consultar
+- [x] **Fase 1** — nfe-api: emitir e consultar (02/11/2026)
+  - [x] Migration `mdfes` + `mdfe_logs`; models `Mdfe`/`MdfeLog`; numeração série 58 (`POST /numeracao` aceita `modelo: "58"`)
+  - [x] `StoreMdfeRequest` (limites do Anexo I do MOC), `MdfeXmlBuilder`, `MdfeGatewayInterface` + `RealMdfeGateway` + `FakeMdfeGateway`, `ProcessMdfeJob`, webhook (`documento: "mdfe"`)
+  - [x] Rotas: `POST /mdfe`, `GET /mdfe/{id}`, `GET /mdfe/{id}/xml`, `GET /certificados/{cnpj}/mdfe/nao-encerrados`
+  - [x] CNPJ alfanumérico: pacote derivado do XSD do `sped-mdfe` (`SchemasCnpjAlfa`), testado de ponta a ponta com a SEFAZ roteirizada
+  - [x] **Achado:** o `sped-mdfe` 4.2.0 arranca as letras da chave no QR Code (`preg_replace('/[^0-9]/')`); o builder entrega o `infMDFeSupl` pronto
+  - [x] **Achado:** o circuito da NF-e liga a contingência SVC da NF-e ao abrir; o MDF-e ganhou `MdfeCircuitBreaker` próprio
+  - [x] Testes: 63 novos em `tests/Feature/Mdfe`; suíte da nfe-api 631 passam, **as mesmas 3 falhas de antes**
+  - **Não verificado:** nenhuma chamada à SEFAZ (o formato do retorno síncrono é suposição do MOC); certificado de teste, não real
 - [ ] **Fase 2** — nfe-api: eventos e DAMDFE (+ 0.4)
 - [ ] **Fase 3** — gestaofacil-api: cadastros (veículos, condutores, `configuracoes_mdfe`)
 - [ ] **Fase 4** — gestaofacil-api: emissão

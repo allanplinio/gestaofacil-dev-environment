@@ -1,5 +1,12 @@
 # PROGRESS.md — GestãoFácil v1 Implementation Roadmap
 
+## PLAN-MDFE — Fase 1: nfe-api emite e consulta MDF-e (02/11/2026)
+
+- **nfe-api:** `POST /mdfe` → `ProcessMdfeJob` (número da série 58 reservado no job, XML do `sped-mdfe`, assinatura e XSD, envio síncrono) → status por `GET /mdfe/{id}`, XML autorizado, webhook com `documento: "mdfe"`, e `GET /certificados/{cnpj}/mdfe/nao-encerrados` (serviço oficial). Tabelas `mdfes` e `mdfe_logs`.
+- **Achados que mudaram o desenho:** (1) o `sped-mdfe` 4.2.0 arranca as letras da chave no QR Code, o que quebraria CNPJ alfanumérico; o builder entrega o QR pronto. (2) o `CircuitBreaker` da NF-e liga a contingência SVC da NF-e ao abrir; o MDF-e tem `MdfeCircuitBreaker` próprio. (3) o XSD da lib é de 05/2025 e recusa CNPJ alfa: pacote derivado.
+- **Testes:** 63 novos (ingest, builder, gateway real com SEFAZ roteirizada, job, circuito); nfe-api 631 passam e **3 falham antes e depois** (`CertificateExpirationTest`, `NaturezaOperacaoCrudTest` isolamento, `NfePollingTest`).
+- **Não verificado:** nada foi enviado à SEFAZ (o formato do retorno síncrono é suposição do MOC); a Fase 2 fecha o item 0.4 (homologação) com pergunta ao Allan antes.
+
 ## PLAN-MDFE — Fase 0: viabilidade da biblioteca (01/11/2026)
 
 Plano em `PLAN-MDFE.md` (§11 tem o andamento com checks). Branch `feature/mdfe` nos cinco repositórios. Documentos oficiais em `docs/mdf-e/`.
