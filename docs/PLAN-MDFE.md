@@ -429,7 +429,17 @@ CT-e fora; camada B (terceiro/CIOT) adiada; gateway em interface separada; peso 
   - [x] **Achado:** o circuito da NF-e liga a contingência SVC da NF-e ao abrir; o MDF-e ganhou `MdfeCircuitBreaker` próprio
   - [x] Testes: 63 novos em `tests/Feature/Mdfe`; suíte da nfe-api 631 passam, **as mesmas 3 falhas de antes**
   - **Não verificado:** nenhuma chamada à SEFAZ (o formato do retorno síncrono é suposição do MOC); certificado de teste, não real
-- [ ] **Fase 2** — nfe-api: eventos e DAMDFE (+ 0.4)
+- [x] **Fase 2** — nfe-api: eventos e DAMDFE (02/11/2026); **falta só o 0.4 (homologação)**
+  - [x] Migration `mdfe_events` (índice único **parcial**: recusado não consome a sequência), `MdfeEvent`, `ProcessMdfeEventoJob`
+  - [x] `POST /mdfe/{id}/encerrar`, `/cancelar` (≤ 24 h), `/condutor` (≤ 99); `GET /mdfe/{id}/eventos/{evento}/xml`; bloco `eventos` no status e no webhook
+  - [x] Gateway real: encerra/cancela/inclui condutor com a SEFAZ roteirizada, evento assinado e validado no XSD, inclusive com CNPJ alfanumérico
+  - [x] DAMDFE e DAEVENTO em PDF (síncronos, como o DACCE). **Achado:** o `Damdfe` do sped-da quebra sem `emit/IE`; o gerador imprime `ISENTO` na cópia
+  - [x] **Achado:** `UFList::getCodeByUF` lança exceção com UF inexistente (daria 500); o request valida a UF antes
+  - [x] **Decisão:** evento 110115 (inclusão de DF-e) **fora da v1**: sem carregamento posterior seria código inalcançável (PLAN §4.3 e decisão da v1)
+  - [x] **Decisão:** `GenerateDamdfeJob` do plano virou geração síncrona (o XML já existe; mesmo desenho do DACCE)
+  - [x] Testes: 107 em `tests/Feature/Mdfe`; suíte da nfe-api 674 passam, **as mesmas 3 falhas de antes**
+  - [ ] **0.4** autorizar, encerrar e cancelar na homologação (PE) com certificado real. **Pede autorização do Allan antes de enviar**
+  - **Limitação conhecida:** o `lockForUpdate` do controller de eventos só é provado pelo índice parcial e por testes sequenciais; não há teste de concorrência real
 - [ ] **Fase 3** — gestaofacil-api: cadastros (veículos, condutores, `configuracoes_mdfe`)
 - [ ] **Fase 4** — gestaofacil-api: emissão
 - [ ] **Fase 5** — gestaofacil-fe

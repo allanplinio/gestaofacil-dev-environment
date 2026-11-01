@@ -1,5 +1,12 @@
 # PROGRESS.md — GestãoFácil v1 Implementation Roadmap
 
+## PLAN-MDFE — Fase 2: eventos e DAMDFE na nfe-api (02/11/2026)
+
+- **nfe-api:** encerrar (`/encerrar`), cancelar (`/cancelar`, só até 24 h) e incluir condutor (`/condutor`, até 99) viram `ProcessMdfeEventoJob`; resultado no status, no webhook e em `/eventos/{id}/xml`. DAMDFE e DAEVENTO em PDF.
+- **Achados:** (1) `Damdfe` do sped-da quebra sem `emit/IE` (emitente isento): imprime `ISENTO` na cópia. (2) `UFList::getCodeByUF` lança exceção com UF inexistente: validar antes. (3) Evento 110115 (DF-e) fica fora da v1 (só existe com carregamento posterior).
+- **Testes:** 107 em `tests/Feature/Mdfe`; nfe-api 674 passam e **as mesmas 3 falham antes e depois**.
+- **Não verificado:** nada foi enviado à SEFAZ (0.4 pendente, depende de autorização do Allan e de certificado real); sem teste de concorrência real dos eventos.
+
 ## PLAN-MDFE — Fase 1: nfe-api emite e consulta MDF-e (02/11/2026)
 
 - **nfe-api:** `POST /mdfe` → `ProcessMdfeJob` (número da série 58 reservado no job, XML do `sped-mdfe`, assinatura e XSD, envio síncrono) → status por `GET /mdfe/{id}`, XML autorizado, webhook com `documento: "mdfe"`, e `GET /certificados/{cnpj}/mdfe/nao-encerrados` (serviço oficial). Tabelas `mdfes` e `mdfe_logs`.
