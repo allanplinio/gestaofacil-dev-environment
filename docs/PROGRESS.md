@@ -1,5 +1,13 @@
 # PROGRESS.md — GestãoFácil v1 Implementation Roadmap
 
+## PLAN-MDFE — Fase 0: viabilidade da biblioteca (01/11/2026)
+
+Plano em `PLAN-MDFE.md` (§11 tem o andamento com checks). Branch `feature/mdfe` nos cinco repositórios. Documentos oficiais em `docs/mdf-e/`.
+- **nfe-api:** `nfephp-org/sped-mdfe` V4.2.0 instalado (layout 3.00). Teste `tests/Feature/Mdfe/ViabilidadeDaBibliotecaTest.php`: um MDF-e mínimo de carga própria monta, assina e valida no XSD.
+- **Lacuna provada em teste:** o XSD do pacote é de maio/2025 (anterior à NT 2025.001) e **rejeita CNPJ alfanumérico**; a Fase 1 precisa de pacote derivado, como o `SchemasCnpjAlfa` da NF-e.
+- **Não verificado:** nada foi enviado à SEFAZ (a homologação fica para o fim da Fase 2, com pergunta ao Allan antes). Falta baixar o pacote XSD oficial (NT 2025.001 v1.04) e as NTs 2024.001/2024.002.
+- **Baseline da nfe-api:** 568 passam e 3 falham **antes e depois** (`CertificateExpirationTest`, `NaturezaOperacaoCrudTest` isolamento, `NfePollingTest`).
+
 ## PLAN-PAGAMENTO-NFCE — conta do PIX e documento do cartão (31/10/2026)
 
 Plano em `PLAN-PAGAMENTO-NFCE.md`. PDV: PIX exige escolher a conta bancária que recebeu; crédito/débito exigem o nº do documento do comprovante; saem na NFC-e (`card/CNPJ` e `card/cAut`).

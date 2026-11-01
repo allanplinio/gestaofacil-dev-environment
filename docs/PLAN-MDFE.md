@@ -114,7 +114,7 @@ própria** · **3** transportador que emitirá **CT-e globalizado**.
 
 **Conclusão: documentos de NF-e ⇒ `tpEmit=2` (carga própria).** É o caso natural para um ERP de comércio que entrega
 a própria mercadoria. **Transportadora de verdade (tpEmit=1 ou 3) exige CT-e**, que é outro documento (outra lib,
-outro plano) e **fica fora**. Isto responde a pergunta 2 do plano anterior: **o escopo é carga própria, NF-e.**
+outro plano) e **fica fora**. Logo **o escopo é carga própria, NF-e** (§10 pergunta 3 pede a confirmação).
 
 ### 4.2 Proprietário diferente do emitente: o aviso da sua foto é o gatilho de tudo
 
@@ -140,7 +140,7 @@ liga uma cadeia de obrigações **a partir dele**:
 A foto (campos de proprietário, CPF/CNPJ, RNTRC, IE, "Info. Pagamento") é de um emissor que faz **A e B**. O formulário
 **já nasce com o bloco do proprietário opcional e recolhido** (aviso, não trava), mas na v1 ele só deixa **TAC sem CIOT** se a Fase 0
 provar que passa; do contrário o bloco fica desligado até a camada B. Quem gera o CIOT não consta nos documentos lidos
-(o MOC só tem o campo `infCIOT`) — **a camada B depende de resolver isso** (§10, pergunta 3).
+(o MOC só tem o campo `infCIOT`) — **a camada B depende de resolver isso** (§10, pergunta 4).
 
 ### 4.3 Carregamento posterior (útil para entrega do dia a dia)
 
@@ -156,6 +156,62 @@ opção** (é o fluxo "saí com o caminhão, as notas saem durante a rota"), mas
   contingência offline (prazo de envio 168 h [VG §11]); importação de MDF-e de terceiros;
   **Provedor de Assinatura e Autorização (PAA)** — [NT 2022.002 v1.02] é para quem delega a assinatura (MEI/pessoa física);
   o nosso emitente assina com **A1 próprio**, então **não se aplica** (confirmado: o texto diz que o contribuinte "poderá" usar PAA).
+
+### 4.5 Sistema multiempresa: cada empresa (CNPJ) com a sua configuração
+
+O GestãoFácil é **multiempresa**: uma mesma instalação serve muitas empresas, cada uma com seus dados isolados (`empresa_id` + `CompanyScope`). Não sabemos de antemão quais delas transportam carga, então o MDF-e é um recurso que **cada empresa liga e configura** para si. O desenho parte do princípio:
+**o formulário mostra só o que a empresa usa, e pré-preenche o que ela repete a cada viagem.** Nada disso é regra fiscal; é conforto.
+
+| O que varia | Exemplos | Como o sistema trata |
+|---|---|---|
+| Usa MDF-e ou não | loja de balcão nunca emite | **flag `habilitado`**; desligada, o menu **Transporte** e as rotas nem aparecem (mesmo molde do "habilitar" do DistDFe) |
+| Veículo | 1 caminhão fixo, frota, ou nenhum próprio | cadastro de veículos; **se só existe 1 ativo, já vem selecionado** |
+| Condutor | sempre o mesmo ou rodízio | cadastro; condutor padrão opcional |
+| Terceiro (agregado, TAC, ETC) | comum no transporte, raro no varejo | **flag `usa_terceiros`**: só ela liga o bloco do proprietário e, depois, CIOT/pagamento (camada B). Desligada, o bloco **nem existe** na tela, o que evita o erro do aviso da sua foto |
+| Emite antes de ter as notas | entrega com saída do dia | **flag `usa_carregamento_posterior`** (§4.3) |
+| O que carrega | confecção, ferragens, alimentos | tipo de carga e produto predominante **padrão** da empresa |
+| Interestadual ou só dentro da UF | | só afeta validação; **não é configuração** (vem do percurso) |
+
+**Configuração por empresa (proposta, a aprovar — §10 pergunta 2).** Uma linha por empresa, `CompanyScope`, em tabela própria `configuracoes_mdfe` no gestaofacil-api:
+
+| Campo | Tipo | Efeito |
+|---|---|---|
+| `habilitado` | bool | libera o recurso |
+| `usa_terceiros` | bool | mostra o bloco de proprietário (camada B) |
+| `usa_carregamento_posterior` | bool | libera a opção no formulário |
+| `rntrc` | string(8), opc. | vai em `infANTT/RNTRC`; só a empresa que tem |
+| `veiculo_padrao_id`, `condutor_padrao_id` | fk, opc. | pré-seleção |
+| `tp_carga_padrao`, `produto_padrao_desc`, `produto_padrao_ncm`, `produto_padrao_gtin` | opc. | pré-preenche `prodPred` |
+| `aut_xml_padrao` | CNPJ/CPF, opc. (até 10) | pré-preenche `autXML` (ex.: o contador baixa o XML) |
+| `inf_complementar_padrao` | texto, opc. | pré-preenche `infAdic/infCpl` |
+| `dias_alerta_aberto` | int, padrão 3 | aviso interno **antes** dos limites oficiais de 5 e 30 dias (que **não** são configuráveis) |
+
+**Regra de uso, a mesma do PLAN-IMPOSTOS (decisão nº 4):** a configuração **só pré-preenche o formulário**; a emissão lê **o que o formulário enviou**,
+nunca a configuração. Assim, mudar o padrão não altera nenhum MDF-e antigo nem rascunho, e o usuário **sempre vê** o que vai para a SEFAZ. Tudo opcional;
+campo vazio na configuração = campo vazio no formulário.
+
+**O que já existe e não precisa de campo novo:** IE, endereço completo e **código IBGE do município** do emitente já estão em `client_certificates.emitente`
+(nfe-api), preenchidos na tela **Empresa** (`Empresa.tsx` tem `codigo_municipio`). UF e município de **carregamento padrão = o endereço do emitente**.
+O que é novo de fato: `rntrc` e a tabela de configuração.
+
+**O que o multiempresa exige (e como o plano já cobre ou passa a cobrir):**
+
+| Ponto | Tratamento |
+|---|---|
+| Isolamento de dados | `veiculos`, `condutores`, `configuracoes_mdfe`, `mdfe_emissoes` e `mdfe_documentos` com `empresa_id` + `CompanyScope`; **teste de acesso entre empresas em cada um** (padrão do PLAN-PAGAMENTO-NFCE). Na nfe-api, `mdfes` filtra por `client_id` como `nfes` |
+| Certificado, ambiente, série | já são **por CNPJ** (`ClientCertificate`, `nfe_numbering`: cnpj + série + modelo + ambiente). MDF-e usa `modelo='58'`, uma numeração por empresa |
+| Bloqueios da SEFAZ (611, 662, 462, 686) e a cota de 5 rejeições/hora | são **por CNPJ/placa do emitente**: o problema de uma empresa **não** vaza para outra |
+| Habilitação na SEFAZ da UF (cStat 203) | **por empresa**; vira item do checklist de onboarding de quem liga o recurso |
+| Varreduras agendadas (aviso de MDF-e em aberto) | percorrem **só as empresas com `habilitado`**, uma consulta por CNPJ, com intervalo entre elas (a SEFAZ limita consultas) |
+| Fila | MDF-e é volume baixo; vai na fila `default` do Horizon; se um dia pesar, ganha fila própria como a `nfce` |
+| Liberação comercial | `habilitado` é da **empresa**. Se o MDF-e virar item de plano (a tabela `planos` tem coluna `features`, ainda sem uso que eu tenha achado), a flag passa a depender do plano. **Não decidido; fica para o PLAN-LANCAMENTO** |
+| Filiais | cada **CNPJ** é uma empresa/emitente; MDF-e de matriz e de filial são manifestos de emitentes distintos. **Não verifiquei** como o sistema trata matriz e filial hoje |
+
+**Não é genérico e fica fora (reavaliar com o primeiro cliente real):** camada B (terceiro com CIOT/pagamento), CT-e, outros modais (§4.4).
+
+**Peso da carga:** `tot/qCarga` é obrigatório e **o sistema não guarda peso em nenhum lugar** (nenhum `peso` em models ou migrations do gestaofacil-api). Logo o
+**peso bruto é digitado no manifesto**, sempre; o valor da carga (`vCarga`) e a contagem de NF-e (`qNFe`) são calculados das notas escolhidas. Se um dia
+houver peso por produto, ele só vira sugestão.
 
 ---
 
@@ -210,7 +266,8 @@ Tabelas com `empresa_id` + `CompanyScope`:
 - `condutores` — nome (2–60) e CPF válido. Um MDF-e aceita de **1 a 10**.
 - `proprietarios_veiculo` — só camada B (§4.2).
 - `mdfe_emissoes` + `mdfe_documentos` (NF-e por município de descarga).
-- Dados do emitente que o MDF-e usa e o sistema pode não ter: **IE**, endereço com `cMun` IBGE (7 dígitos), **RNTRC** (opcional na camada A) → onde guardar é pergunta 4.
+- `configuracoes_mdfe` (§4.5): uma linha por empresa; só pré-preenche o formulário.
+- Dados do emitente (IE, endereço, `cMun` IBGE) **já existem** em `client_certificates.emitente` e são enviados no payload de cada MDF-e; **RNTRC** vem da `configuracoes_mdfe` e também vai no payload.
 
 Serviços: `MdfeEmissaoService`, `MdfeReconciliador`, `MdfeAbertosService` (consulta oficial de não encerrados + aviso com os limites 5 e 30 dias).
 
@@ -233,7 +290,7 @@ Formulário (nome das abas livre; **não copiar a foto**), com campos do leiaute
 | **Totais/Outros** | peso bruto, valor da carga, unidade (KG/TON), lacres, autorizados a baixar o XML (≤ 10), info. adicional | `tot`, `lacres`, `autXML`, `infAdic` |
 | **Terceiro/Pagamento** (camada B) | proprietário, TAC/ETC, CIOT, contratante, pagamento, vale-pedágio | `prop`, `infCIOT`, `infContratante`, `infPag`, `valePed` |
 
-`tot/qNFe`, `vCarga` e `qCarga` são calculados a partir das NF-e escolhidas quando possível (valor e peso já existem nos itens). Cálculo exato é **pergunta de produto**, não está no MOC.
+`tot/qNFe` e `vCarga` são calculados das NF-e escolhidas; **`qCarga` (peso bruto) é digitado**, porque o sistema não guarda peso (§4.5).
 
 **Lições de UX da foto:** veículo é cadastro reutilizável (combo com editar/criar); bloco do proprietário só quando diferente do emitente — **avisa, não trava**
 (memória `feedback_avisar_nao_travar`); **Salvar** (rascunho) e **Transmitir** são ações separadas.
@@ -276,7 +333,7 @@ Cadastros, formulário, lista com painel de em aberto, modais de evento, XML/DAM
 Atualizar `PLAN-SEGURANCA.md`: isolamento por empresa dos cadastros, rate limit, **CPF de condutor/proprietário** (LGPD, sem log do payload cru). Primeiro MDF-e **real** com o Allan acompanhando; confirmar antes que a **empresa está habilitada para emitir MDF-e na SEFAZ da UF** (rejeição **203** *"Emissor não habilitado"* [VG §6]).
 
 ### Fase 8 — Camada B (só se confirmada a demanda)
-`prop`/`tpTransp`, **CIOT**, `infPag`, `infBanc`, `infContratante`, vale-pedágio (`tpValePed` só 01 ou 04), eventos 110116/110118. Depende da pergunta 3.
+`prop`/`tpTransp`, **CIOT**, `infPag`, `infBanc`, `infContratante`, vale-pedágio (`tpValePed` só 01 ou 04), eventos 110116/110118. Depende da pergunta 4 do §10.
 
 ---
 
@@ -322,20 +379,55 @@ Evitam rejeição e protegem a cota de 5 rejeições/hora [VG §8.3]. Cada uma c
 
 ## 10. Decisões que preciso do Allan
 
-1. **Quem vai usar?** Carga própria com veículo da empresa (camada A) é o único caso que o plano cobre bem. Se ninguém emite hoje, parar na **Fase 0**.
-2. ~~Escopo~~ **resolvido pelo MOC (§4.1)**: com NF-e, só `tpEmit=2`. Transportadora (CT-e) é plano separado. **Confirma que não é para transportadora?**
-3. **Terceiro (TAC/ETC) entra?** Se sim: quem **gera o CIOT**? Os documentos lidos só tratam do campo; preciso saber se o cliente usa um emissor de CIOT externo ou se é para integrarmos com algum.
-4. **Onde guardar IE, município IBGE e RNTRC do emitente?** Nova tabela/coluna em `configuracoes_fiscais`, em `client_certificates.emitente` ou no payload de cada MDF-e? (Memória: perguntar antes de criar campo.)
-5. **Gateway:** `MdfeGatewayInterface` separada (recomendado) ou estender a `SefazGatewayInterface`?
-6. **Menu Transporte:** sempre visível ou só quando a empresa habilita?
-7. **Carregamento posterior** entra na v1 (fluxo "emite e inclui as notas na rota") ou só a emissão com notas já definidas?
-8. **Começar pela Fase 0 já?**
+Lista refeita em 2026-11-01 com o princípio de sistema genérico (§4.5). O que a configuração por empresa resolve **saiu da lista**:
+menu visível só para quem habilita, terceiro e carregamento posterior como opções ligáveis, onde guardar IE/município (já existem), e a interface do gateway
+(decisão técnica minha, abaixo). Sobraram **quatro** decisões.
+
+1. **Quando começar, e a Fase 0 já?** MDF-e só serve às empresas da plataforma que transportam carga, e hoje o foco comercial é comércio/moda (PLAN-LANCAMENTO). Como o sistema é multiempresa, ele pode esperar um cliente que precise. Vale a Fase 0 (prova barata, sem tela) agora, ou o MDF-e entra
+   na fila depois de outra prioridade (PLAN-LANCAMENTO)? A Fase 0 sozinha **não cria campo, tela ou migration**: só instala a lib e emite na homologação.
+2. **Aprova a tabela `configuracoes_mdfe` (§4.5)?** Ela cria campos novos (memória: perguntar antes). Responder: **aprovar como está**, **cortar campos** (diga quais) ou
+   **começar só com `habilitado`, `rntrc` e padrões de veículo/condutor** e acrescentar o resto quando alguém pedir. *Minha recomendação: a 3ª opção.*
+3. **Transportadora (CT-e) está fora?** Com NF-e só vale carga própria (§4.1). Empresa que **transporta para os outros** emite CT-e, que é outro documento e outro plano.
+   Confirmando "fora", o produto serve a quem entrega **a própria mercadoria**.
+4. **Camada B (terceiro com CIOT/pagamento) fica adiada até o primeiro cliente pedir?** Se sim, hoje só a flag `usa_terceiros` existe como futuro e o bloco não é construído.
+   Quando o primeiro cliente aparecer, a pergunta **"quem gera o CIOT?"** vira obrigatória, porque os documentos lidos só descrevem o campo `infCIOT`.
+   *Observação:* com o CIOT obrigatório em produção em **23/11/2026**, a camada B não deve entrar às pressas.
+
+**Assumido por mim, a menos que você diga o contrário** (decisões técnicas, sem efeito visível):
+- Gateway em **interface separada** `MdfeGatewayInterface` (a `SefazGatewayInterface` já tem 9 métodos de NF-e e o MDF-e usa outros webservices e outra lib).
+- Carregamento posterior só a partir da **Fase 2/5**, atrás da flag, e não na primeira emissão.
+- **Peso bruto digitado** a cada manifesto (§4.5).
+- **Nunca** encerrar manifesto por reação à rejeição de bloqueio (§1).
 
 ---
 
-## 11. Registro de execução
+## 11. Andamento e registro de execução
 
-*(vazio — preencher a cada fase, com o comando e o resultado)*
+Branch `feature/mdfe` em `nfe-api`, `gestaofacil-api`, `gestaofacil-fe`, `gestaofacil-e2e` e `gestaofacil-dev-environment` (criadas em 2026-11-01).
+**Portão de cada fase:** revisar → rodar os testes → commitar → marcar aqui e no `PROGRESS.md` → só então a próxima.
+
+**Decisões aplicadas (as recomendadas, 2026-11-01, por pedido do Allan):** começar já; `configuracoes_mdfe` **mínima** (`habilitado`, `rntrc`, veículo e condutor padrão);
+CT-e fora; camada B (terceiro/CIOT) adiada; gateway em interface separada; peso bruto digitado; nunca encerrar por rejeição. **Carregamento posterior:** na v1 só o **evento
+110115 no backend** (nfe-api e gestaofacil-api); sem opção na tela e sem flag, porque a configuração mínima não a inclui.
+
+- [x] **Fase 0 — prova de viabilidade** (parcial: falta só o item 0.4, ver abaixo)
+  - [x] 0.1 `composer require nfephp-org/sped-mdfe` → **V4.2.0** (a única dependência nova; `sped-common` já satisfazia). Layout **3.00**, schemas `PL_MDFe_300a` de **08/05/2025**
+  - [x] 0.2 O XSD do pacote é **anterior à NT 2025.001**: CNPJ `[0-9]{14}`, chave `[0-9]{44}`, `Id` `MDFe[0-9]{44}`, `cStat` `[0-9]{3}`. Rejeita CNPJ alfanumérico (provado em teste)
+  - [x] 0.3 MDF-e mínimo (`tpEmit=2`, rodoviário, sem `prop`, 1 NF-e, 1 condutor, **sem** `prodPred`) **monta, assina (certificado de teste) e valida** no XSD, com QR Code. Teste:
+        `tests/Feature/Mdfe/ViabilidadeDaBibliotecaTest.php`. Com CNPJ alfa e um pacote derivado (mesma técnica do `SchemasCnpjAlfa`) os padrões de CNPJ e `Id` deixam de reclamar; **a validação completa com assinatura fica para a Fase 1**
+  - [x] A biblioteca tem os serviços de **cancelar, encerrar, incluir condutor, incluir DF-e, consultar não encerrados, consultar situação, status e DistDFe** (`Tools.php`)
+  - [ ] 0.4 **Autorizar, encerrar e cancelar na homologação (PE) com o certificado real**: **deixado para o fim da Fase 2**, com o gateway real já escrito; pede o certificado da empresa de teste e uma NF-e já autorizada em homologação (a SEFAZ confere se a NF-e existe, rejeição 675). **Vou perguntar antes de enviar**
+  - Lacuna aberta: o pacote derivado para CNPJ alfa é gerado do XSD do vendor (maio/2025), **não do pacote oficial** NT 2025.001 v1.04, que ainda falta baixar (§12)
+  - Suíte da nfe-api: 568 passam, **3 falham, e as 3 já falhavam antes** (conferido desfazendo as mudanças): `CertificateExpirationTest` (limiares de 30/15/7 dias),
+    `NaturezaOperacaoCrudTest` (isolamento entre clientes) e `NfePollingTest` (comparação de uuid). Qualquer falha além dessas é regressão do MDF-e
+- [ ] **Fase 1** — nfe-api: emitir e consultar
+- [ ] **Fase 2** — nfe-api: eventos e DAMDFE (+ 0.4)
+- [ ] **Fase 3** — gestaofacil-api: cadastros (veículos, condutores, `configuracoes_mdfe`)
+- [ ] **Fase 4** — gestaofacil-api: emissão
+- [ ] **Fase 5** — gestaofacil-fe
+- [ ] **Fase 6** — E2E
+- [ ] **Fase 7** — segurança e produção (`PLAN-SEGURANCA.md`)
+- [ ] **Fase 8** — camada B (adiada, sem previsão)
 
 ---
 
