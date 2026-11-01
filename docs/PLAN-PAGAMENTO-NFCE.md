@@ -38,6 +38,10 @@ Decisão do Allan: a nota precisa da **bandeira**, não da operadora. A primeira
 - **Parcelas:** só no crédito, obrigatória, inteiro de 1 a 24 (`VendaPagamento::MAX_PARCELAS`). A NF-e **não tem campo para o número de parcelas** (conferido no XSD). Sai como: `indPag` 0 (1x, à vista) ou 1 (2x ou mais, a prazo) no `detPag` e o texto `Cartao de credito em Nx` anexado às informações complementares (`infCpl`), que a NFC-e imprime. Não se inventa vencimento nem valor de parcela (grupo `cobr` não usado).
 - Colunas novas em `venda_pagamentos`: `bandeira_cartao` (2) e `parcelas`.
 
+## 2c. Tudo opcional, em PDV, pedido e nota avulsa (01/11/2026)
+
+Decisão do Allan: como o schema não exige (XSD: `card` e, dentro dele, `tBand`/`cAut`/`CNPJ` são `minOccurs=0`), **nada é obrigatório**. Isto **substitui** as regras "obrigatório" das seções 2 (item 5) e 2b: PIX sem conta, cartão sem documento/bandeira e crédito sem parcelas passam. O que for informado continua validado (`App\Services\Pagamento\DadosDoPagamento`, uma só classe para as três entradas). Os mesmos campos valem no pedido (`/vendas/{id}/pagamentos`) e na nota avulsa (`pagamentos.*` do formulário, NF-e 55 e NFC-e 65). Pendente: conferir na NT/homologação se a SEFAZ rejeita cartão sem bandeira ou autorização em algum modelo — se rejeitar, a obrigatoriedade volta por modelo.
+
 ## 3. Etapas (cada uma: revisar → testar → commitar)
 
 - **E1 nfe-api**: `StoreNfeRequest` + `NfeXmlBuilder` + teste de XML.
