@@ -30,13 +30,13 @@ Fora do escopo: bandeira (`tBand`), CNPJ da credenciadora, `idTermPag`, TEF (`tp
 7. **Nota**: `NfeEmissaoService::construirPagamentos` manda `autorizacao` (cartão) e `cnpj_instituicao`
    (PIX); `nfe-api` valida e o `NfeXmlBuilder` grava `cAut` / `card/CNPJ`.
 
-## 2b. Operadoras de cartão de crédito (01/11/2026)
+## 2b. Bandeira e parcelas do cartão (01/11/2026)
 
-- **Por empresa, com CRUD.** Decisão do Allan: `empresa_id` em tudo; melhor duplicar a linha que arriscar vazamento. `operadoras_cartao` tem `empresa_id` (CompanyScope), `ativo` e `unique(empresa_id, cnpj)`. (A primeira versão era catálogo compartilhado + tabela de desativadas; a migration `..._000002` converteu e removeu as duas.)
-- **Semente:** `OperadoraCartao::semear` roda quando a empresa nasce (`Empresa::created`) e a migration copiou o catálogo para as empresas existentes. Padrão: Cielo 01.027.058/0001-91 · Rede 01.425.787/0001-04 · Stone 16.501.555/0001-57 · Getnet 10.440.482/0001-54 · PagSeguro 08.561.701/0001-01 (conferidos em fonte pública, DV válido; a tabela Confaz/SAT traz a Rede com `-01`, DV inválido). Operadora que o sistema não traz (Mercado Pago, SumUp, Safrapay, Elavon…) a empresa cadastra com o próprio CNPJ.
-- **Regras:** só crédito, opcional; precisa estar ativa e ser da empresa (senão 422). Excluir só se nunca usada (senão 409, desative). CNPJ com DV e sem repetir na empresa. O CNPJ sai em `card/CNPJ`.
-- Gestão: `/operadoras-cartao` (CRUD, admin); PDV: `GET /pdv/operadoras-cartao`.
-- **Menu:** grupo recolhível **Configurações** (Fiscal, Contas bancárias, Operadoras de cartão, Usuários).
+Decisão do Allan: a nota precisa da **bandeira**, não da operadora. A primeira versão (operadoras de cartão com CRUD e CNPJ da credenciadora, `empresa_id`, menu Configurações) foi **removida por inteiro**; a migration atual apaga as tabelas caso o banco de dev as tenha. O grupo recolhível **Configurações** do menu ficou (Fiscal, Contas bancárias, Usuários).
+
+- **Bandeira:** `App\Enums\BandeiraCartao` (01 Visa, 02 Mastercard, 03 American Express, 04 Sorocred, 05 Diners Club, 06 Elo, 07 Hipercard, 08 Aura, 09 Cabal, 99 Outras). Lista fixa — a SEFAZ só aceita esses códigos. O XSD só impõe `[0-9]{2}`; quem confere o código é a API (`Rule::enum` no checkout e o service) e o nfe-api (`in:`). Obrigatória em crédito e débito, proibida nas outras formas. Sai em `card/tBand`. `GET /pdv/bandeiras-cartao` expõe a lista; o front espelha a constante.
+- **Parcelas:** só no crédito, obrigatória, inteiro de 1 a 24 (`VendaPagamento::MAX_PARCELAS`). A NF-e **não tem campo para o número de parcelas** (conferido no XSD). Sai como: `indPag` 0 (1x, à vista) ou 1 (2x ou mais, a prazo) no `detPag` e o texto `Cartao de credito em Nx` anexado às informações complementares (`infCpl`), que a NFC-e imprime. Não se inventa vencimento nem valor de parcela (grupo `cobr` não usado).
+- Colunas novas em `venda_pagamentos`: `bandeira_cartao` (2) e `parcelas`.
 
 ## 3. Etapas (cada uma: revisar → testar → commitar)
 
