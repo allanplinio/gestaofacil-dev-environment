@@ -1,5 +1,14 @@
 # PROGRESS.md — GestãoFácil v1 Implementation Roadmap
 
+## PLAN-PAGAMENTO-NFCE — conta do PIX e documento do cartão (31/10/2026)
+
+Plano em `PLAN-PAGAMENTO-NFCE.md`. PDV: PIX exige escolher a conta bancária que recebeu; crédito/débito exigem o nº do documento do comprovante; saem na NFC-e (`card/CNPJ` e `card/cAut`).
+- **nfe-api** (`aba501a`): `StoreNfeRequest` aceita `autorizacao` (≤20, alfanumérico) e `cnpj_instituicao`; `NfeXmlBuilder` grava só nas formas com `<card>`. XML assinado e validado no XSD (3 testes novos). Suíte: 3 falhas que já existiam sem a mudança (`CertificateExpirationTest`, `NaturezaOperacaoCrudTest` isoladas, `NfePollingTest`).
+- **gestaofacil-api** (`2247b3d`): tabela `contas_bancarias` + `venda_pagamentos.conta_bancaria_id/documento_cartao`; CRUD `/contas-bancarias` (área fiscal), `GET /pdv/contas-bancarias`; checkout exige os dados por forma; payload da nota leva os dois. 14 testes novos. Suíte: 7 falhas, **as mesmas 7 da linha de base** (Natureza token, NFe Emission ×4, Estoque immutable, SQL cru).
+- **gestaofacil-fe**: tela `Contas bancárias` (menu Gestão, admin), seletor de conta no PIX e campo do documento no cartão (só PDV; pedido de venda e nota avulsa não mudam). `make test-fe` (tsc + build) passa.
+- **Não verificado:** tela no navegador (conferência do Allan, Firefox); nenhuma emissão na SEFAZ real com esses campos; sem teste e2e novo (os specs existentes só usam dinheiro).
+- **Atenção:** o PLAN-FINANCEIRO prevê `contas_financeiras` (tipo banco); quando for feito, migrar `contas_bancarias` para lá em vez de duplicar. A conta não é congelada na venda: editar o CNPJ depois muda a nota de uma reemissão.
+
 ## PLAN-GRADE — Ajustes após uso na tela e E2E dos informativos (30/10/2026)
 
 Achados pelo Allan testando o modelo "Celular sansung":

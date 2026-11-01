@@ -560,3 +560,12 @@ Commits: `nfe-api` 1d033e8, `gestaofacil-api` 110e647, `gestaofacil-fe` dbb5ed9.
 - [x] Auditoria `produtos.importados` (empresa, usuário, id da importação, contagens, nome do arquivo, formato), sem nenhum dado da planilha (teste).
 - [x] Sem SQL cru nem execução de código no código novo (`grep` limpo em `Services/Produtos`, controller e comando).
 - [ ] **Pendência (não feita, fora do pedido):** o cadastro manual de produto (`POST/PATCH /produtos`) não limita o tamanho do preço/estoque; um valor acima de `decimal(12,2)` vira erro de banco (500) em vez de 422. A importação já trata; trazer o mesmo teto para `RegrasDeProduto` mudaria o cadastro manual e precisa de decisão.
+
+### 31/10/2026: conta do PIX e documento do cartão (PLAN-PAGAMENTO-NFCE)
+
+- [x] `contas-bancarias` só para a área `fiscal` (admin): vendedor 403 em listar e criar; o PDV lê só as ativas em `GET /pdv/contas-bancarias` (teste `ContaBancariaEDocumentoDoCartaoTest`).
+- [x] Isolamento entre empresas: empresa B recebe 404 em ver, editar e excluir conta da A, e a lista vem vazia (CompanyScope; teste).
+- [x] Checkout: conta de outra empresa ou inativa → 422 e nada gravado; `empresa_id` da conta vem do usuário logado, nunca do corpo.
+- [x] Documento do cartão só `[A-Za-z0-9]{1,20}` (limite do `cAut`), validado no checkout **e** no nfe-api; dado de outra forma de pagamento é recusado.
+- [x] CNPJ da instituição validado com DV; conta usada em venda não se exclui (409), a FK é `restrict`.
+
