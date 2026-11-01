@@ -32,10 +32,11 @@ Fora do escopo: bandeira (`tBand`), CNPJ da credenciadora, `idTermPag`, TEF (`tp
 
 ## 2b. Operadoras de cartão de crédito (01/11/2026)
 
-- **Catálogo único** `operadoras_cartao` (semeado na migration) + `empresa_operadoras_desativadas`: toda empresa, nova ou antiga, já tem as operadoras ativas; a configuração guarda só o que desativa.
-- **Padrão:** Cielo 01.027.058/0001-91 · Rede 01.425.787/0001-04 · Stone 16.501.555/0001-57 · Getnet 10.440.482/0001-54 · PagSeguro 08.561.701/0001-01. Conferidos em fonte pública e com DV válido. A tabela Confaz (SAT) lista a Rede com `-01`, que tem DV inválido; vale o `-04`. Fora da lista por falta de conferência: Mercado Pago, SumUp, Safrapay, Elavon.
-- **Só crédito, opcional.** Operadora desativada/inexistente → 422; em débito/PIX → 422. O CNPJ sai em `card/CNPJ` (mesmo campo do CNPJ da instituição do PIX). Venda antiga mantém a operadora mesmo se desativada depois.
-- Gestão: `GET/PATCH /operadoras-cartao` (admin); PDV: `GET /pdv/operadoras-cartao`.
+- **Por empresa, com CRUD.** Decisão do Allan: `empresa_id` em tudo; melhor duplicar a linha que arriscar vazamento. `operadoras_cartao` tem `empresa_id` (CompanyScope), `ativo` e `unique(empresa_id, cnpj)`. (A primeira versão era catálogo compartilhado + tabela de desativadas; a migration `..._000002` converteu e removeu as duas.)
+- **Semente:** `OperadoraCartao::semear` roda quando a empresa nasce (`Empresa::created`) e a migration copiou o catálogo para as empresas existentes. Padrão: Cielo 01.027.058/0001-91 · Rede 01.425.787/0001-04 · Stone 16.501.555/0001-57 · Getnet 10.440.482/0001-54 · PagSeguro 08.561.701/0001-01 (conferidos em fonte pública, DV válido; a tabela Confaz/SAT traz a Rede com `-01`, DV inválido). Operadora que o sistema não traz (Mercado Pago, SumUp, Safrapay, Elavon…) a empresa cadastra com o próprio CNPJ.
+- **Regras:** só crédito, opcional; precisa estar ativa e ser da empresa (senão 422). Excluir só se nunca usada (senão 409, desative). CNPJ com DV e sem repetir na empresa. O CNPJ sai em `card/CNPJ`.
+- Gestão: `/operadoras-cartao` (CRUD, admin); PDV: `GET /pdv/operadoras-cartao`.
+- **Menu:** grupo recolhível **Configurações** (Fiscal, Contas bancárias, Operadoras de cartão, Usuários).
 
 ## 3. Etapas (cada uma: revisar → testar → commitar)
 

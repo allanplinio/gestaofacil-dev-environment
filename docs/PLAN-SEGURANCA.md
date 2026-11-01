@@ -568,5 +568,4 @@ Commits: `nfe-api` 1d033e8, `gestaofacil-api` 110e647, `gestaofacil-fe` dbb5ed9.
 - [x] Checkout: conta de outra empresa ou inativa → 422 e nada gravado; `empresa_id` da conta vem do usuário logado, nunca do corpo.
 - [x] Documento do cartão só `[A-Za-z0-9]{1,20}` (limite do `cAut`), validado no checkout **e** no nfe-api; dado de outra forma de pagamento é recusado.
 - [x] CNPJ da instituição validado com DV; conta usada em venda não se exclui (409), a FK é `restrict`.
-- [x] Operadoras de cartão (01/11/2026): configuração só na área `fiscal` (vendedor 403, teste); desativar vale só para a empresa (empresa B continua vendo todas, teste); `empresa_id` vem do usuário logado; operadora desativada/inexistente/fora do crédito é 422 no checkout.
-
+- [x] Operadoras de cartão (01/11/2026): `empresa_id` + CompanyScope; empresa B recebe 404 em ver, editar e excluir operadora da A, e operadora de outra empresa no checkout é 422 (testes); `empresa_id` vem do usuário logado; CRUD só na área `fiscal` (vendedor 403 em tudo, só lê as ativas no PDV); CNPJ com DV e único na empresa; operadora usada em venda não se exclui (409).
