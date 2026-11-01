@@ -30,6 +30,13 @@ Fora do escopo: bandeira (`tBand`), CNPJ da credenciadora, `idTermPag`, TEF (`tp
 7. **Nota**: `NfeEmissaoService::construirPagamentos` manda `autorizacao` (cartão) e `cnpj_instituicao`
    (PIX); `nfe-api` valida e o `NfeXmlBuilder` grava `cAut` / `card/CNPJ`.
 
+## 2b. Operadoras de cartão de crédito (01/11/2026)
+
+- **Catálogo único** `operadoras_cartao` (semeado na migration) + `empresa_operadoras_desativadas`: toda empresa, nova ou antiga, já tem as operadoras ativas; a configuração guarda só o que desativa.
+- **Padrão:** Cielo 01.027.058/0001-91 · Rede 01.425.787/0001-04 · Stone 16.501.555/0001-57 · Getnet 10.440.482/0001-54 · PagSeguro 08.561.701/0001-01. Conferidos em fonte pública e com DV válido. A tabela Confaz (SAT) lista a Rede com `-01`, que tem DV inválido; vale o `-04`. Fora da lista por falta de conferência: Mercado Pago, SumUp, Safrapay, Elavon.
+- **Só crédito, opcional.** Operadora desativada/inexistente → 422; em débito/PIX → 422. O CNPJ sai em `card/CNPJ` (mesmo campo do CNPJ da instituição do PIX). Venda antiga mantém a operadora mesmo se desativada depois.
+- Gestão: `GET/PATCH /operadoras-cartao` (admin); PDV: `GET /pdv/operadoras-cartao`.
+
 ## 3. Etapas (cada uma: revisar → testar → commitar)
 
 - **E1 nfe-api**: `StoreNfeRequest` + `NfeXmlBuilder` + teste de XML.
