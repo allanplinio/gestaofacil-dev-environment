@@ -1,5 +1,12 @@
 # PROGRESS.md — GestãoFácil v1 Implementation Roadmap
 
+## PLAN-MDFE — Homologação real do MDF-e (05/11/2026)
+
+Com autorização do Allan, só em homologação (SVRS, empresa de PE, `tpAmb=2`): MDF-e **autorizado (100)**, **encerrado (135)**, **condutor incluído (135)**, **cancelado (135)**, consulta de não encerrados **112**, consulta de situação **132/101**. DAMDFE e DAEVENTO gerados dos XMLs reais.
+- **Achado:** o primeiro envio foi recusado com **523** (cavalo mecânico sem reboque); o request passou a exigir o reboque.
+- **Formato confirmado:** envio síncrono, `retMDFe` com `protMDFe`; a SEFAZ roteirizada dos testes já simulava igual.
+- **Ainda não verificado:** produção, outra UF e CNPJ alfanumérico contra a SEFAZ (só offline); a homologação deixou 3 manifestos e 5 eventos no banco de dev.
+
 ## PLAN-MDFE — Fase 2: eventos e DAMDFE na nfe-api (02/11/2026)
 
 - **nfe-api:** encerrar (`/encerrar`), cancelar (`/cancelar`, só até 24 h) e incluir condutor (`/condutor`, até 99) viram `ProcessMdfeEventoJob`; resultado no status, no webhook e em `/eventos/{id}/xml`. DAMDFE e DAEVENTO em PDF.

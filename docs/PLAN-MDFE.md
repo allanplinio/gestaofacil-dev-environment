@@ -410,13 +410,13 @@ Branch `feature/mdfe` em `nfe-api`, `gestaofacil-api`, `gestaofacil-fe`, `gestao
 CT-e fora; camada B (terceiro/CIOT) adiada; gateway em interface separada; peso bruto digitado; nunca encerrar por rejeição. **Carregamento posterior:** na v1 só o **evento
 110115 no backend** (nfe-api e gestaofacil-api); sem opção na tela e sem flag, porque a configuração mínima não a inclui.
 
-- [x] **Fase 0 — prova de viabilidade** (parcial: falta só o item 0.4, ver abaixo)
+- [x] **Fase 0 — prova de viabilidade** (concluída; o 0.4 foi feito no fim da Fase 2)
   - [x] 0.1 `composer require nfephp-org/sped-mdfe` → **V4.2.0** (a única dependência nova; `sped-common` já satisfazia). Layout **3.00**, schemas `PL_MDFe_300a` de **08/05/2025**
   - [x] 0.2 O XSD do pacote é **anterior à NT 2025.001**: CNPJ `[0-9]{14}`, chave `[0-9]{44}`, `Id` `MDFe[0-9]{44}`, `cStat` `[0-9]{3}`. Rejeita CNPJ alfanumérico (provado em teste)
   - [x] 0.3 MDF-e mínimo (`tpEmit=2`, rodoviário, sem `prop`, 1 NF-e, 1 condutor, **sem** `prodPred`) **monta, assina (certificado de teste) e valida** no XSD, com QR Code. Teste:
         `tests/Feature/Mdfe/ViabilidadeDaBibliotecaTest.php`. Com CNPJ alfa e um pacote derivado (mesma técnica do `SchemasCnpjAlfa`) os padrões de CNPJ e `Id` deixam de reclamar; **a validação completa com assinatura fica para a Fase 1**
   - [x] A biblioteca tem os serviços de **cancelar, encerrar, incluir condutor, incluir DF-e, consultar não encerrados, consultar situação, status e DistDFe** (`Tools.php`)
-  - [ ] 0.4 **Autorizar, encerrar e cancelar na homologação (PE) com o certificado real**: **deixado para o fim da Fase 2**, com o gateway real já escrito; pede o certificado da empresa de teste e uma NF-e já autorizada em homologação (a SEFAZ confere se a NF-e existe, rejeição 675). **Vou perguntar antes de enviar**
+  - [x] 0.4 **Homologação (SVRS, empresa de PE, 05/11/2026)**: ver a Fase 2 abaixo
   - Lacuna aberta: o pacote derivado para CNPJ alfa é gerado do XSD do vendor (maio/2025), **não do pacote oficial** NT 2025.001 v1.04, que ainda falta baixar (§12)
   - Suíte da nfe-api: 568 passam, **3 falham, e as 3 já falhavam antes** (conferido desfazendo as mudanças): `CertificateExpirationTest` (limiares de 30/15/7 dias),
     `NaturezaOperacaoCrudTest` (isolamento entre clientes) e `NfePollingTest` (comparação de uuid). Qualquer falha além dessas é regressão do MDF-e
@@ -429,7 +429,7 @@ CT-e fora; camada B (terceiro/CIOT) adiada; gateway em interface separada; peso 
   - [x] **Achado:** o circuito da NF-e liga a contingência SVC da NF-e ao abrir; o MDF-e ganhou `MdfeCircuitBreaker` próprio
   - [x] Testes: 63 novos em `tests/Feature/Mdfe`; suíte da nfe-api 631 passam, **as mesmas 3 falhas de antes**
   - **Não verificado:** nenhuma chamada à SEFAZ (o formato do retorno síncrono é suposição do MOC); certificado de teste, não real
-- [x] **Fase 2** — nfe-api: eventos e DAMDFE (02/11/2026); **falta só o 0.4 (homologação)**
+- [x] **Fase 2** — nfe-api: eventos e DAMDFE (02–05/11/2026), com a homologação (0.4)
   - [x] Migration `mdfe_events` (índice único **parcial**: recusado não consome a sequência), `MdfeEvent`, `ProcessMdfeEventoJob`
   - [x] `POST /mdfe/{id}/encerrar`, `/cancelar` (≤ 24 h), `/condutor` (≤ 99); `GET /mdfe/{id}/eventos/{evento}/xml`; bloco `eventos` no status e no webhook
   - [x] Gateway real: encerra/cancela/inclui condutor com a SEFAZ roteirizada, evento assinado e validado no XSD, inclusive com CNPJ alfanumérico
@@ -437,8 +437,12 @@ CT-e fora; camada B (terceiro/CIOT) adiada; gateway em interface separada; peso 
   - [x] **Achado:** `UFList::getCodeByUF` lança exceção com UF inexistente (daria 500); o request valida a UF antes
   - [x] **Decisão:** evento 110115 (inclusão de DF-e) **fora da v1**: sem carregamento posterior seria código inalcançável (PLAN §4.3 e decisão da v1)
   - [x] **Decisão:** `GenerateDamdfeJob` do plano virou geração síncrona (o XML já existe; mesmo desenho do DACCE)
-  - [x] Testes: 107 em `tests/Feature/Mdfe`; suíte da nfe-api 674 passam, **as mesmas 3 falhas de antes**
-  - [ ] **0.4** autorizar, encerrar e cancelar na homologação (PE) com certificado real. **Pede autorização do Allan antes de enviar**
+  - [x] Testes: 110 em `tests/Feature/Mdfe`; suíte da nfe-api 677 passam, **as mesmas 3 falhas de antes**
+  - [x] **0.4 Homologação real (05/11/2026, SVRS, CNPJ 11500611000115, tpAmb=2)**, com autorização do Allan, pelo mesmo caminho do código (`ProcessMdfeJob` + `RealMdfeGateway`):
+    consulta de não encerrados **112**; MDF-e nº 2 **autorizado (100)** e **encerrado (135)**; MDF-e nº 3 **autorizado (100)**, **condutor incluído (135)** e **cancelado (135)**; consulta de situação **132** (encerrado) e **101** (cancelado);
+    DAMDFE e DAEVENTO gerados dos XMLs reais (conferido o DAMDFE a olho). Serviço: `mdfe-homologacao.svrs.rs.gov.br`, envio **síncrono**, resposta `retMDFe` + `protMDFe` (idêntica ao que a SEFAZ roteirizada simula)
+  - [x] **Achado da homologação:** o 1º envio (cavalo mecânico sem reboque) foi **recusado com 523**; o request passou a exigir reboque para `tipo_rodado=03`. O MDF-e nº 1 ficou `rejected` no banco de dev
+  - [x] Dev: 3 manifestos (nº 1 rejeitado, 2 encerrado, 3 cancelado) e 5 eventos ficaram em `mdfes`/`mdfe_events` do banco de **dev** da nfe-api (homologação; sem efeito fiscal)
   - **Limitação conhecida:** o `lockForUpdate` do controller de eventos só é provado pelo índice parcial e por testes sequenciais; não há teste de concorrência real
 - [ ] **Fase 3** — gestaofacil-api: cadastros (veículos, condutores, `configuracoes_mdfe`)
 - [ ] **Fase 4** — gestaofacil-api: emissão
