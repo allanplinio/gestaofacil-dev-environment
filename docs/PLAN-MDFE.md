@@ -450,7 +450,15 @@ CT-e fora; camada B (terceiro/CIOT) adiada; gateway em interface separada; peso 
   - [x] **Decisão (a confirmar com o Allan):** veículos e condutores ficam na área `notas` (quem emite cadastra na hora, como o "+" da tela de exemplo); só a configuração (ligar, RNTRC, padrões) é `fiscal`. O plano dizia "cadastros em fiscal"
   - [x] Excluir veículo/condutor apaga (e limpa o padrão); **a Fase 4 passa a recusar** quando um manifesto apontar para o cadastro
   - [x] Testes: 30 em `tests/Feature/Transporte` (isolamento entre empresas, perfis, gate de habilitação, unicidade, validações). Suíte da gestaofacil-api: 1369 passam; **as mesmas 7 falhas de antes** (conferido desfazendo as mudanças)
-- [ ] **Fase 4** — gestaofacil-api: emissão
+- [x] **Fase 4** — gestaofacil-api: emissão (05/11/2026)
+  - [x] Migration `mdfe_emissoes`, `MdfeEmissao`, `NfeApiClient::mdfe*` (sem `nfe_requests`: o payload leva CPF de condutor), `MdfeEmissaoService` (rascunho, transmitir, reconciliar, eventos, status), `MdfeAbertosService`
+  - [x] Rotas `/transporte/mdfe`: CRUD do rascunho, `transmitir`, `encerrar`, `cancelar` (≤ 24 h), `condutor`, `xml`, `damdfe`, arquivos do evento, `abertos`; webhook com `documento: "mdfe"`; `mdfe:reconciliar-pendentes` a cada 5 min
+  - [x] **Bloqueios 611/662/462/686 conferidos antes de enviar** (409 `mdfe_bloqueado` com o manifesto a encerrar); a SEFAZ é a verdade, o que ela não lista mais sai de "aberto"; sem encerramento automático
+  - [x] Valor da carga somado das NF-e (venda ou avulsa); NF-e só autorizadas, modelo 55 e da empresa; cadastros inativos recusados ao transmitir
+  - [x] **Decisão:** o alerta de MDF-e em aberto é a tela/endpoint `abertos` (situação `ok`/`atencao` a partir de 3 dias/`bloqueando`), não um comando agendado de aviso: não há canal de notificação hoje, e `dias_alerta_aberto` saiu da configuração mínima
+  - [x] Veículo/condutor com histórico não se excluem (409); rascunho não segura
+  - [x] Testes: 66 em `tests/Feature/Transporte/MdfeEmissaoTest.php` (isolamento entre empresas, perfis, bloqueios, idempotência, webhook, eventos, arquivos). Suíte da gestaofacil-api: 1465 passam; **as mesmas 7 falhas de antes**
+  - **Não verificado:** a emissão ponta a ponta entre as duas APIs (só com o nfe-api simulado); a numeração da série 58 não tem tela ("continuar a partir de X" para quem migra de outro sistema); sem teste de concorrência real da transmissão (o `lockForUpdate` e o 409 do segundo clique só têm teste sequencial)
 - [ ] **Fase 5** — gestaofacil-fe
 - [ ] **Fase 6** — E2E
 - [ ] **Fase 7** — segurança e produção (`PLAN-SEGURANCA.md`)

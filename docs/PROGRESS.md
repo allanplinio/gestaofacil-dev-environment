@@ -1,5 +1,12 @@
 # PROGRESS.md — GestãoFácil v1 Implementation Roadmap
 
+## PLAN-MDFE — Fase 4: emissão do MDF-e na gestaofacil-api (05/11/2026)
+
+- **gestaofacil-api:** rascunho → transmitir → acompanhar → encerrar/cancelar/incluir condutor, com XML e DAMDFE. O payload é montado ao transmitir (cadastros ativos, NF-e autorizadas da empresa, valor somado). Webhook `documento: "mdfe"`, reconciliador a cada 5 min, `GET /transporte/mdfe/abertos`.
+- **Bloqueios da SEFAZ (611/662/462/686) são conferidos antes de enviar**, porque cada recusa gasta a cota de 5 por hora; a SEFAZ confirma o que está aberto. Nunca se encerra sozinho.
+- **Testes:** 66 novos; suíte 1465 passam e **as mesmas 7 falham antes e depois**.
+- **Não verificado:** ponta a ponta real entre as duas APIs; sem tela para a numeração da série 58; sem teste de concorrência real.
+
 ## PLAN-MDFE — Fase 3: cadastros do transporte na gestaofacil-api (05/11/2026)
 
 - **gestaofacil-api:** `configuracoes_mdfe` (habilitar por empresa, RNTRC, veículo e condutor padrão), `veiculos` e `condutores`, tudo por empresa (`CompanyScope`). Rotas `/transporte/*`; sem a empresa ligar o MDF-e, 403 `mdfe_desabilitado`.
