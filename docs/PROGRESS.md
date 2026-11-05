@@ -1,5 +1,13 @@
 # PROGRESS.md — GestãoFácil v1 Implementation Roadmap
 
+## PLAN-MDFE — Fases 6 e 7: E2E e segurança (05/11/2026)
+
+- **E2E:** 9 testes fiscais (gateway fake, ponta a ponta pela tela) e 16 de cadastros/permissão (chromium + firefox) passam; suíte E2E completa **283 passam, 13 pulados, 2 falham** (as mesmas 2 de `senha.spec.ts`). A guarda do E2E barra transmitir/encerrar/cancelar/condutor do MDF-e fora do projeto `fiscal`.
+- **Achados que só o E2E mostrou:** o fake de "não encerrados" vinha vazio (bloqueios nunca disparavam); o worker "autorizava" sem gravar o XML por causa de um diretório de root (`put` devolve `false`): os jobs agora lançam; `checkAuth` do front desloga em qualquer erro (Firefox).
+- **Testes:** nfe-api 680 passam (3 falhas antigas); gestaofacil-api 1465 passam (7 antigas); `make test-fe` e `verificar:transporte` ok.
+- **Segurança:** registro em `PLAN-SEGURANCA.md` ("05/11/2026: MDF-e"), com 5 pendências abertas.
+- **Não verificado:** produção; tela no navegador (do Allan); homologação **com o fluxo completo entre as duas APIs** (a de 05/11 foi só na nfe-api).
+
 ## PLAN-MDFE — Fase 5: telas do MDF-e no gestaofacil-fe (05/11/2026)
 
 - **gestaofacil-fe:** grupo **Transporte** no menu (só para quem ligou o MDF-e em Configurações → Transporte); manifestos (lista com painel Em aberto, formulário, detalhe com encerrar/cancelar/condutor/DAMDFE/XML), veículos, condutores e a configuração.

@@ -467,8 +467,14 @@ CT-e fora; camada B (terceiro/CIOT) adiada; gateway em interface separada; peso 
   - [x] `npm run verificar:transporte` (regras puras) passa; `make test-fe` (tsc + build) passa
   - [ ] **Conferência visual no Firefox: é do Allan.** Nenhuma tela foi aberta
   - **Pendências:** a numeração da série 58 não tem tela; o formulário não tem rascunho automático (salva só pelo botão)
-- [ ] **Fase 6** — E2E
-- [ ] **Fase 7** — segurança e produção (`PLAN-SEGURANCA.md`)
+- [x] **Fase 6** — E2E (05/11/2026)
+  - [x] `tests/e2e/fiscal/transporte-mdfe.spec.ts` (gateway **fake**, só com `E2E_GATEWAY_FAKE=1 make test-e2e-fiscal`): **9 passam**. Tela → gestaofacil-api → nfe-api (fila, worker, XML e XSD) → webhook de volta: emite pela tela e encerra; bloqueio **611** com link do manifesto aberto e liberação ao encerrar; rejeição `[E2E-REJEITA:611]` → "Corrigir e transmitir" sai com outro número; cancelar; incluir condutor; XML e DAMDFE; painel "Em aberto"; NF-e que não vale é recusada antes do nfe-api
+  - [x] `tests/e2e/transporte-cadastros.spec.ts` (chromium e firefox, **não emite nada**): 8 testes × 2 navegadores = **16 passam**: menu só aparece depois de ligar, veículos e condutores pela tela, placa/CPF inválidos, unicidade por empresa (e a empresa B), vendedor/operador/admin, 401
+  - [x] A guarda do E2E (`test-base.ts`) passou a **barrar** transmitir, encerrar, cancelar e incluir condutor do MDF-e em qualquer projeto que não seja o `fiscal`
+  - [x] Suíte E2E normal completa: **283 passam, 13 pulados, 2 falham** (`senha.spec.ts` 077 e 003, só chromium; **já falhavam antes** e não têm relação com o MDF-e)
+  - [x] **Achados que só o E2E mostrou:** (1) o fake de "não encerrados" devolvia sempre vazio e os bloqueios nunca disparavam (agora reflete os autorizados da empresa); (2) um diretório de `storage/app` ficou de **root** por causa da minha homologação manual e o worker "autorizava" sem gravar o XML, porque `Storage::put` devolve `false` em vez de lançar: os jobs do MDF-e agora lançam; (3) o `checkAuth` do front apaga o token em **qualquer** erro, inclusive requisição abortada por navegação no Firefox (o teste agora espera o menu carregar; o app **não** foi mudado)
+- [x] **Fase 7** — segurança e produção (05/11/2026): registro em `PLAN-SEGURANCA.md` ("05/11/2026: MDF-e"), com o que está provado e o que não está
+  - [ ] **Primeiro MDF-e em produção: não feito.** Pede o Allan acompanhando e a empresa habilitada para MDF-e na SEFAZ da UF (rejeição 203)
 - [ ] **Fase 8** — camada B (adiada, sem previsão)
 
 ---

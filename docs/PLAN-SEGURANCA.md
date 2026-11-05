@@ -570,3 +570,22 @@ Commits: `nfe-api` 1d033e8, `gestaofacil-api` 110e647, `gestaofacil-fe` dbb5ed9.
 - [x] CNPJ da instituição validado com DV; conta usada em venda não se exclui (409), a FK é `restrict`.
 - [x] Bandeira e parcelas (01/11/2026): bandeira só aceita os 10 códigos do enum (422 em qualquer outro, no checkout e de novo no nfe-api); parcelas inteiro 1–24 só no crédito; dado fora da forma é recusado; `GET /pdv/bandeiras-cartao` exige login e área `pdv` (teste). Operadoras de cartão removidas (e com elas o CRUD e o `empresa_id` delas).
 - [x] Dados do pagamento opcionais (01/11/2026): pedido e nota avulsa passam pela mesma `DadosDoPagamento` do PDV; `conta_bancaria_id` é conferida pelo `CompanyScope` (conta de outra empresa ou inativa é recusada — teste de conta alheia só no checkout do PDV; no pedido e na avulsa o teste usa id inexistente, o mesmo caminho de código).
+
+### 05/11/2026: MDF-e (PLAN-MDFE)
+
+- [x] **Isolamento entre empresas:** veículos, condutores, configuração e manifestos têm `CompanyScope`: a outra empresa recebe 404 em ver, editar, transmitir, encerrar, cancelar, incluir condutor, XML e DAMDFE, e a lista vem vazia (testes `CadastrosDoTransporteTest` e `MdfeEmissaoTest`; E2E com a empresa B). No nfe-api tudo filtra por `client_id` (status, XML, eventos, DAMDFE, não encerrados; testes). Cadastro de outra empresa **não** entra no manifesto (422) e a NF-e de outra empresa também não.
+- [x] **`empresa_id` nunca vem do corpo** (teste: o `empresa_id` enviado é ignorado).
+- [x] **Perfil:** vendedor 403 em todo o transporte; operador emite e cadastra mas **não** muda a configuração (403); só o administrador liga o recurso (testes de API e E2E). Empresa que não ligou o MDF-e recebe 403 `mdfe_desabilitado` em tudo menos na configuração.
+- [x] **Webhook:** o mesmo endpoint com HMAC; assinatura inválida 401, protocolo desconhecido 404, status fora de ordem ou desconhecido não muda nada (estado final não volta atrás; testes).
+- [x] **IDOR de evento:** o id do evento só vale se estiver no espelho **deste** manifesto e registrado; id de outro manifesto dá 404 (teste).
+- [x] **Dado pessoal (CPF do condutor):** o payload enviado (`xml_requisicao`) é `hidden` e nunca volta na API (teste); **não** vai para `nfe_requests` (o cliente do MDF-e não registra o corpo); a auditoria guarda só ids e a placa; o webhook e o status não levam CPF.
+- [x] **Sem SQL cru novo:** a regra "cadastro com histórico não se exclui" usa `whereJsonContains` (o `whereRaw` inicial foi trocado por causa do teste de varredura do projeto).
+- [x] **A cota de rejeições da SEFAZ é tratada como recurso protegido:** os bloqueios 611/662/462/686 são conferidos **antes** de enviar (cada recusa conta para as 5 por hora que suprimem a chave do culpado) e o sistema **nunca encerra manifesto por conta própria**.
+- [x] **Idempotência:** `id_externo` por manifesto; dois cliques não transmitem duas vezes (409); webhook reentregue e job reentregue não voltam o estado nem reenviam (testes).
+- [x] **Falha silenciosa de gravação:** `Storage::put` devolvia `false` sem lançar e um manifesto ficou "autorizado" sem XML (diretório de root, achado no E2E). Os jobs do MDF-e agora lançam; o retry se resolve pela duplicidade.
+- [x] **Circuito próprio do MDF-e:** o da NF-e liga a contingência SVC da NF-e ao abrir; falha do MDF-e não pode fazer isso (teste).
+- [ ] **Pendência:** o CPF do condutor fica em claro em `mdfes.json_data` (nfe-api) e em `mdfe_emissoes.xml_requisicao` (gestaofacil-api), sem criptografia em repouso e sem prazo de retenção; mesma situação dos dados do destinatário da NF-e. Decisão do Allan.
+- [ ] **Pendência:** não há teste de **concorrência real** (dois processos) da transmissão nem dos eventos; o `lockForUpdate` e o índice único parcial só têm teste sequencial e de banco.
+- [ ] **Pendência (achado, fora do escopo):** `checkAuth` do frontend apaga o token em qualquer erro, até requisição abortada por navegação (reproduzido no Firefox). Pode deslogar o usuário sem motivo.
+- [ ] **Pendência:** `NfeXml`/DANFE da NF-e ainda não conferem o retorno do `put` (mesmo risco do incidente acima).
+- [ ] **Não verificado:** produção; outra UF; CNPJ alfanumérico contra a SEFAZ (só offline e contra o fake).
