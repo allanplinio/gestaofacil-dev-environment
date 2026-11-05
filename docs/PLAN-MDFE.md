@@ -444,7 +444,12 @@ CT-e fora; camada B (terceiro/CIOT) adiada; gateway em interface separada; peso 
   - [x] **Achado da homologação:** o 1º envio (cavalo mecânico sem reboque) foi **recusado com 523**; o request passou a exigir reboque para `tipo_rodado=03`. O MDF-e nº 1 ficou `rejected` no banco de dev
   - [x] Dev: 3 manifestos (nº 1 rejeitado, 2 encerrado, 3 cancelado) e 5 eventos ficaram em `mdfes`/`mdfe_events` do banco de **dev** da nfe-api (homologação; sem efeito fiscal)
   - **Limitação conhecida:** o `lockForUpdate` do controller de eventos só é provado pelo índice parcial e por testes sequenciais; não há teste de concorrência real
-- [ ] **Fase 3** — gestaofacil-api: cadastros (veículos, condutores, `configuracoes_mdfe`)
+- [x] **Fase 3** — gestaofacil-api: cadastros (05/11/2026)
+  - [x] Migration `veiculos` (única por placa/empresa), `condutores` (único por CPF/empresa), `configuracoes_mdfe` (uma por empresa); models com `CompanyScope`; `Support\Cpf`, `Support\DominiosDoTransporte`
+  - [x] `GET/PUT /transporte/configuracao`; CRUD `/transporte/veiculos` e `/transporte/condutores`; `RequireMdfeHabilitado` (403 `mdfe_desabilitado` quando a empresa não ligou o recurso)
+  - [x] **Decisão (a confirmar com o Allan):** veículos e condutores ficam na área `notas` (quem emite cadastra na hora, como o "+" da tela de exemplo); só a configuração (ligar, RNTRC, padrões) é `fiscal`. O plano dizia "cadastros em fiscal"
+  - [x] Excluir veículo/condutor apaga (e limpa o padrão); **a Fase 4 passa a recusar** quando um manifesto apontar para o cadastro
+  - [x] Testes: 30 em `tests/Feature/Transporte` (isolamento entre empresas, perfis, gate de habilitação, unicidade, validações). Suíte da gestaofacil-api: 1369 passam; **as mesmas 7 falhas de antes** (conferido desfazendo as mudanças)
 - [ ] **Fase 4** — gestaofacil-api: emissão
 - [ ] **Fase 5** — gestaofacil-fe
 - [ ] **Fase 6** — E2E

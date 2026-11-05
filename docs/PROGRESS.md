@@ -1,5 +1,12 @@
 # PROGRESS.md — GestãoFácil v1 Implementation Roadmap
 
+## PLAN-MDFE — Fase 3: cadastros do transporte na gestaofacil-api (05/11/2026)
+
+- **gestaofacil-api:** `configuracoes_mdfe` (habilitar por empresa, RNTRC, veículo e condutor padrão), `veiculos` e `condutores`, tudo por empresa (`CompanyScope`). Rotas `/transporte/*`; sem a empresa ligar o MDF-e, 403 `mdfe_desabilitado`.
+- **Decisão pendente de confirmação:** veículos e condutores na área `notas` (quem emite cadastra), configuração na `fiscal`.
+- **Testes:** 30 novos (isolamento, perfis, gate, unicidade). Suíte: 1369 passam e **as mesmas 7 falham antes e depois** (`NaturezaOperacaoTest`, `NfeEmissaoTest` ×4, `ProdutoTest` estoque imutável, `EntradaESeguraTest` SQL cru por `DB::raw(1)` do `ModeloService`).
+- **Não verificado:** nenhuma tela (Fase 5); a emissão ainda não existe (Fase 4).
+
 ## PLAN-MDFE — Homologação real do MDF-e (05/11/2026)
 
 Com autorização do Allan, só em homologação (SVRS, empresa de PE, `tpAmb=2`): MDF-e **autorizado (100)**, **encerrado (135)**, **condutor incluído (135)**, **cancelado (135)**, consulta de não encerrados **112**, consulta de situação **132/101**. DAMDFE e DAEVENTO gerados dos XMLs reais.
