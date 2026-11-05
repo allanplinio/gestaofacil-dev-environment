@@ -478,6 +478,7 @@ CT-e fora; camada B (terceiro/CIOT) adiada; gateway em interface separada; peso 
 - [x] **Duplicar manifesto (05/11/2026, pedido do Allan depois da Fase 7)**: `POST /transporte/mdfe/{id}/duplicar` e botão **Duplicar** na tabela e no detalhe. Gera rascunho com a viagem igual e **as NF-e e o valor da carga em branco** (o município de entrega fica, sem as notas); nada vai à SEFAZ.
   - [x] Testes: 10 novos na gestaofacil-api (qualquer status, sem NF-e nem valor, original intacto e nada enviado ao nfe-api, outra empresa 404, vendedor 403, MDF-e desligado 403, 401); 2 no E2E fiscal (pela tabela, completando a cópia e transmitindo; pelo detalhe de um encerrado). Suíte da gestaofacil-api 1475 passam (**as mesmas 7 falhas de antes**); E2E fiscal do MDF-e **11 passam**
   - **Decidi manter na cópia** `inicio_viagem` e os lacres (só zerei o que é da NF-e, como pedido): a tela avisa para conferir antes de transmitir. Se preferir limpar também, é uma linha no `MdfeEmissaoService::duplicar`
+- [x] **Tabela e detalhe com valor da carga e produto predominante (05/11/2026)**: colunas novas na lista de manifestos e as duas linhas no detalhe. O valor é calculado pela API (sem coluna nova): o enviado, o digitado ou a soma das NF-e. Textos de ajuda nos campos **Lacres** e **Quem pode consultar o manifesto (autXML)**, que estavam confusos. Testes: 4 na API (suíte 1479 passam, as mesmas 7 falhas antigas) e 1 no E2E fiscal (12 passam)
 - [ ] **Fase 8** — camada B (adiada, sem previsão)
 
 ---
