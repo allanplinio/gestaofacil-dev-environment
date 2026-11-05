@@ -1,5 +1,10 @@
 # PROGRESS.md — GestãoFácil v1 Implementation Roadmap
 
+## PLAN-MDFE — Fase 5: telas do MDF-e no gestaofacil-fe (05/11/2026)
+
+- **gestaofacil-fe:** grupo **Transporte** no menu (só para quem ligou o MDF-e em Configurações → Transporte); manifestos (lista com painel Em aberto, formulário, detalhe com encerrar/cancelar/condutor/DAMDFE/XML), veículos, condutores e a configuração.
+- **Verificado:** `tsc` + build (`make test-fe`) e `npm run verificar:transporte` (regras puras). **Não verificado:** nenhuma tela foi aberta no navegador (conferência do Allan, no Firefox); sem teste de interface automático (a Fase 6 cobre o fluxo).
+
 ## PLAN-MDFE — Fase 4: emissão do MDF-e na gestaofacil-api (05/11/2026)
 
 - **gestaofacil-api:** rascunho → transmitir → acompanhar → encerrar/cancelar/incluir condutor, com XML e DAMDFE. O payload é montado ao transmitir (cadastros ativos, NF-e autorizadas da empresa, valor somado). Webhook `documento: "mdfe"`, reconciliador a cada 5 min, `GET /transporte/mdfe/abertos`.

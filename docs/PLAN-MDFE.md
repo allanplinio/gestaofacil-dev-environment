@@ -459,7 +459,14 @@ CT-e fora; camada B (terceiro/CIOT) adiada; gateway em interface separada; peso 
   - [x] Veículo/condutor com histórico não se excluem (409); rascunho não segura
   - [x] Testes: 66 em `tests/Feature/Transporte/MdfeEmissaoTest.php` (isolamento entre empresas, perfis, bloqueios, idempotência, webhook, eventos, arquivos). Suíte da gestaofacil-api: 1465 passam; **as mesmas 7 falhas de antes**
   - **Não verificado:** a emissão ponta a ponta entre as duas APIs (só com o nfe-api simulado); a numeração da série 58 não tem tela ("continuar a partir de X" para quem migra de outro sistema); sem teste de concorrência real da transmissão (o `lockForUpdate` e o 409 do segundo clique só têm teste sequencial)
-- [ ] **Fase 5** — gestaofacil-fe
+- [x] **Fase 5** — gestaofacil-fe (05/11/2026): **código pronto, tela não conferida no navegador**
+  - [x] Tipos, API (`transporteApi`), `useTransporteStore` e `RequireTransporte`: o grupo **Transporte** do menu e as telas só existem para quem ligou o MDF-e
+  - [x] `/config-transporte` (ligar, RNTRC, veículo e condutor padrão), `/transporte/veiculos`, `/transporte/condutores`
+  - [x] `/transporte/mdfe`: lista com filtros e painel **Em aberto** (ordem do mais urgente, aviso de bloqueio, abertos que só a SEFAZ conhece); `/novo` e `/:id/editar` (viagem, veículo e condutores, notas por município de entrega, carga); `/:id` (acompanha a cada 5 s, encerrar, cancelar ≤ 24 h, incluir condutor, DAMDFE e XML, eventos)
+  - [x] 409 `mdfe_bloqueado` aparece com o link do manifesto a encerrar; 422 por campo; cavalo mecânico sem reboque barrado na tela (523)
+  - [x] `npm run verificar:transporte` (regras puras) passa; `make test-fe` (tsc + build) passa
+  - [ ] **Conferência visual no Firefox: é do Allan.** Nenhuma tela foi aberta
+  - **Pendências:** a numeração da série 58 não tem tela; o formulário não tem rascunho automático (salva só pelo botão)
 - [ ] **Fase 6** — E2E
 - [ ] **Fase 7** — segurança e produção (`PLAN-SEGURANCA.md`)
 - [ ] **Fase 8** — camada B (adiada, sem previsão)
