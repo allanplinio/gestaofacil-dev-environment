@@ -475,6 +475,9 @@ CT-e fora; camada B (terceiro/CIOT) adiada; gateway em interface separada; peso 
   - [x] **Achados que só o E2E mostrou:** (1) o fake de "não encerrados" devolvia sempre vazio e os bloqueios nunca disparavam (agora reflete os autorizados da empresa); (2) um diretório de `storage/app` ficou de **root** por causa da minha homologação manual e o worker "autorizava" sem gravar o XML, porque `Storage::put` devolve `false` em vez de lançar: os jobs do MDF-e agora lançam; (3) o `checkAuth` do front apaga o token em **qualquer** erro, inclusive requisição abortada por navegação no Firefox (o teste agora espera o menu carregar; o app **não** foi mudado)
 - [x] **Fase 7** — segurança e produção (05/11/2026): registro em `PLAN-SEGURANCA.md` ("05/11/2026: MDF-e"), com o que está provado e o que não está
   - [ ] **Primeiro MDF-e em produção: não feito.** Pede o Allan acompanhando e a empresa habilitada para MDF-e na SEFAZ da UF (rejeição 203)
+- [x] **Duplicar manifesto (05/11/2026, pedido do Allan depois da Fase 7)**: `POST /transporte/mdfe/{id}/duplicar` e botão **Duplicar** na tabela e no detalhe. Gera rascunho com a viagem igual e **as NF-e e o valor da carga em branco** (o município de entrega fica, sem as notas); nada vai à SEFAZ.
+  - [x] Testes: 10 novos na gestaofacil-api (qualquer status, sem NF-e nem valor, original intacto e nada enviado ao nfe-api, outra empresa 404, vendedor 403, MDF-e desligado 403, 401); 2 no E2E fiscal (pela tabela, completando a cópia e transmitindo; pelo detalhe de um encerrado). Suíte da gestaofacil-api 1475 passam (**as mesmas 7 falhas de antes**); E2E fiscal do MDF-e **11 passam**
+  - **Decidi manter na cópia** `inicio_viagem` e os lacres (só zerei o que é da NF-e, como pedido): a tela avisa para conferir antes de transmitir. Se preferir limpar também, é uma linha no `MdfeEmissaoService::duplicar`
 - [ ] **Fase 8** — camada B (adiada, sem previsão)
 
 ---

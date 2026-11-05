@@ -1,5 +1,10 @@
 # PROGRESS.md — GestãoFácil v1 Implementation Roadmap
 
+## PLAN-MDFE — Duplicar manifesto (05/11/2026)
+
+- **gestaofacil-api / fe:** `POST /transporte/mdfe/{id}/duplicar` e botão **Duplicar** na tabela e no detalhe: rascunho novo com a viagem igual e as NF-e e o valor da carga em branco; abre a edição com o aviso de cópia. Qualquer status se duplica; nada vai à SEFAZ.
+- **Testes:** 10 novos na API (suíte 1475 passam, as mesmas 7 falhas antigas) e 2 no E2E fiscal (11 passam); `make test-fe` e `verificar:transporte` ok. **Tela não conferida no Firefox** (do Allan).
+
 ## PLAN-MDFE — Fases 6 e 7: E2E e segurança (05/11/2026)
 
 - **E2E:** 9 testes fiscais (gateway fake, ponta a ponta pela tela) e 16 de cadastros/permissão (chromium + firefox) passam; suíte E2E completa **283 passam, 13 pulados, 2 falham** (as mesmas 2 de `senha.spec.ts`). A guarda do E2E barra transmitir/encerrar/cancelar/condutor do MDF-e fora do projeto `fiscal`.
