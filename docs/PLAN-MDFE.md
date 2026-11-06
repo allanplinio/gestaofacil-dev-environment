@@ -482,6 +482,7 @@ CT-e fora; camada B (terceiro/CIOT) adiada; gateway em interface separada; peso 
 - [x] **Rejeitado continua rejeitado ao ser editado (06/11/2026, pedido do Allan)**: antes, salvar a correção de um manifesto rejeitado o devolvia a rascunho e apagava o número, o código e o motivo (o Allan perdeu o erro 663 que estava corrigindo). Agora só a **transmissão** muda o status; se o nfe-api recusar o reenvio, volta a rejeitado com o erro de antes. Testes: 5 novos na API (suíte 1483 passam, as mesmas 7 falhas) e o E2E de corrigir e transmitir cobre salvar sem perder o erro (12 passam)
   - **Não feito (não confirmado pelo Allan):** barrar na tela e na API um percurso que repete a UF de carregamento ou de descarregamento (a causa do 663 dele)
   - O manifesto nº 1 do banco de dev do Allan já tinha sido salvo pela regra antiga: está como rascunho, sem o erro. Não foi alterado
+- [x] **Só rascunho se exclui (06/11/2026, a pedido do Allan)**: o rejeitado deixou de poder ser excluído (era regra minha, sem auditoria e deixava o nfe-api com um registro órfão): fica no histórico e se corrige, retransmite ou duplica. A exclusão do rascunho agora vai para a auditoria (`mdfe.excluido`). Testes: 2 novos na API (suíte 1485 passam, as mesmas 7 falhas) e 1 no E2E (13 passam). **Não feito:** "arquivar" para esconder rejeitados antigos (só se a lista encher)
 - [ ] **Fase 8** — camada B (adiada, sem previsão)
 
 ---
